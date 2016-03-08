@@ -1,0 +1,123 @@
+Mobile Motion Tracking Robot Arm 
+Fall 2015 Senior Design 
+Jeff Ruocco, Jeff Falberg, Getro Jean-Bapiste 
+
+Overview 
+.Microsoft Kinect motion tracking used to control the 
+movement of a robot arm 
+.Five degrees of freedom 
+.Robot arm attached to mobile platform controlled by 
+the user 
+.Wireless communication between computer and 
+microcontroller through XBee modules 
+
+Overview 
+
+Microsoft Kinect Skeletal Tracking 
+.Microsoft Kinect uses a technique called structured 
+light to do skeletal tracking 
+
+Microsoft Kinect Skeletal Tracking 
+.IR emitter emits a pattern of infrared light 
+.IR depth sensor detects light and creates depth map 
+
+Microsoft Kinect Skeletal Tracking 
+.Kinect compares generated depth map to training 
+examples to determine body parts 
+.Assigns joints based on body parts 
+
+Microsoft Kinect Skeletal Tracking 
+.Microsoft SDK 
+// Enable skeletal tracking 
+KinectSensor kinect = null; 
+kinect.SkeletonStream.Enable(); 
+// Access skeletal information 
+SkeletonFrame skeletonFrame = e.OpenSkeletonFrame(); 
+skeletonFrame.CopySkeletonDataTo(this.skeletonData); 
+
+Wireless Data Communication 
+.Wireless data communication will be done with a Digi 
+International XBee 802.15.4 module 
+.The XBee transmitter module operates on a 2.4GHz 
+radio frequency to transmit data to a receiver 
+.The receiver communicates with the microcontroller 
+mounted on the robot 
+.Xbee module is compatible with our Lynxmotion SSC-
+32U servo controller 
+
+Servo Controller: Lynxmotion SSC-32U 
+.SSC-32U can control up to 32 
+servo channels as well as 
+having 8 analog I/O ports 
+.Bidirectional communication 
+with query commands, 
+synchronized, or “group” 
+moves 
+.Motion controls can be 
+immediate response, speed 
+controlled, timed motion, or a 
+combination 
+
+Servo Controller: Lynxmotion SSC-32U 
+.Group moves allow any combination of servos to begin 
+and end motion simultaneously 
+
+SSC-32 Servo Sequencer 
+.Free utility to manipulate the motion of the arm 
+.Moves servos, calibrate their positions, store and 
+playback motion sequences 
+.We will program the utility to control motors based on 
+commands received from XBee module 
+
+Alternative 
+.As an alternative, we can use an Arduino 
+microcontroller to control the SSC-32U server 
+controller 
+.Program Arduino, sends serial commands to the SSC-
+32U, which in turn controls the servos 
+
+Robot Arm: Lynxmotion AL5D 
+.Arm has 5 servos, one for each motion 
+.180 degree rotation at the base 
+.Forward and backwards 
+.Up and down 
+.Open and close gripper 
+.Rotate gripper at the wrist 
+.Each servo has three wires. Two for power (voltage 
+and ground), and a pulse signal controlled by the 
+microcontroller to turn servo on/of 
+.Microcontroller and servos will be powered by a 
+6.0vdc battery pack 
+
+Mobile Platform 
+.4WD platform to transport the 
+arm 
+.Microcontroller will control 
+platform servos through a motor 
+controller 
+.Motor controller has two 
+channels, turn and forward, that 
+are connected to output pins on 
+microcontroller 
+.Platform servos powered by 
+12.0vdc battery 
+
+Mobile Platform 
+.A wireless camera will be attached to the mobile 
+platform to allow the user to monitor the arm from a 
+distance 
+.The camera will send video over a 2.450GHz radio 
+frequency to a computer 
+.The camera will be powered by a 9.0vdc battery pack 
+
+References 
+http://voxcommando.com/forum/index.php?topic=1653.0 
+http://users.dickinson.edu/~jmac/selected-talks/kinect.pdf 
+https://msdn.microsoft.com 
+http://www.lynxmotion.com 
+http://www.digi.com/support/productdetail?pid=3257 
+http://www.instructables.com/id/Controlling-Servos-Using-the-SSC-32-Servo-
+Controll/ 
+
+Questions 
+
