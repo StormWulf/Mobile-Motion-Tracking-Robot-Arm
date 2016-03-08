@@ -3,20 +3,13 @@ using System;
 using System.ComponentModel;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Diagnostics;
 using System.IO.Ports;
-using System.IO;
 using System.Threading.Tasks;
 
 namespace KinectCoordinateMapping
@@ -31,20 +24,20 @@ namespace KinectCoordinateMapping
         KinectSensor _sensor;                   // Sensor object
         Skeleton[] _bodies = new Skeleton[6];   // Array to hold bodies in scene
         JointCollection jointsCache = null;     // Array to cache joints from previous frame
+        List<Task> tasks = new List<Task>();    // List of tasks to send serial communication to arduino
         float posX = 0;
         float posY = 0;
         float posZ = 0;
         float changeNeeded = 0.05F;
-        //BackgroundWorker bw = new BackgroundWorker();   // Background worker to send updates to arduino
-        List<Task> tasks = new List<Task>();    // List of tasks to send serial communication to arduino
 
-        //SerialPort ComPort = new SerialPort("COM3", 9600);
-
+        /**********************************************************************
+        * Initialization and setup
+        * Establish connection to Arduino
+        **********************************************************************/
         public MainWindow()
         {
             InitializeComponent();
             SetComPort();
-            Thread.Sleep(500);
             if (portFound){
                 Debug.WriteLine("\nARDUINO FOUND ON COM PORT: " + currentPort.PortName + "\n");
                 labelError.Content = "Arduino found on COM Port: " + currentPort.PortName;
@@ -55,9 +48,6 @@ namespace KinectCoordinateMapping
                 MessageBox.Show("Could not connect to Arduino!", "Fatal Error", MessageBoxButton.OK);
                 System.Environment.Exit(1);
             }
-
-            //bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(bw_RunWorkerCompleted);
-            //bw.WorkerReportsProgress = true;
         }
 
         /**********************************************************************
@@ -81,6 +71,11 @@ namespace KinectCoordinateMapping
             }
         }
 
+        /**********************************************************************
+        * Called every frame
+        * Read new position of joints and send update over serial if needed
+        * Draw position of joints on screen
+        **********************************************************************/
         void Sensor_AllFramesReady(object sender, AllFramesReadyEventArgs e)
         {
             // Color
@@ -129,25 +124,6 @@ namespace KinectCoordinateMapping
                                 {
                                     continue;
                                 }
-                                /*if (joint.TrackingState == JointTrackingState.NotTracked)
-                                {
-                                    continue;
-                                }*/
-                                /*switch (joint.JointType)
-                                {
-                                    case JointType.Head:
-                                        continue;
-                                    case JointType.ElbowLeft:
-                                        continue;
-                                    case JointType.HandLeft:
-                                        continue;
-                                    case JointType.ShoulderLeft:
-                                        continue;
-                                    case JointType.WristLeft:
-                                        continue;
-                                    default:
-                                        break;
-                                }*/
                                 // 3D coordinates in meters
                                 SkeletonPoint skeletonPoint = joint.Position;
                                 if(joint.JointType == JointType.HandRight)
@@ -201,7 +177,7 @@ namespace KinectCoordinateMapping
                                     float changeY = Math.Abs(posY - skeletonPoint.Y);
                                     float changeZ = Math.Abs(posZ - skeletonPoint.Z);
 
-                                    if (changeX > changeNeeded)
+                                    if (changeX > changeNeeded || changeY > changeNeeded || changeZ > changeNeeded)
                                     {
                                         Task t1 = Task.Factory.StartNew(() => SendSerial(joint));
                                         posX = skeletonPoint.X;
@@ -228,6 +204,9 @@ namespace KinectCoordinateMapping
             Debug.WriteLine("Quitting...");
         }
 
+        /**********************************************************************
+        * Read data from com port
+        **********************************************************************/
         private void ReadComPort()
         {
             try
@@ -235,9 +214,13 @@ namespace KinectCoordinateMapping
                 string message = currentPort.ReadLine();
                 Debug.WriteLine("\n" + message + "\n");
             }
-            catch { }
+            catch(Exception ex) { Debug.WriteLine(ex.Message); }
         }
 
+        /**********************************************************************
+        * Search all com ports for Arduino
+        * Arduino will send acknowledment signal
+        **********************************************************************/
         SerialPort currentPort;
         bool portFound;
         private void SetComPort()
@@ -256,7 +239,6 @@ namespace KinectCoordinateMapping
                     else
                     {
                         portFound = false;
-
                     }
                 }
             }
@@ -281,7 +263,7 @@ namespace KinectCoordinateMapping
                 char charReturnValue = (Char)intReturnASCII;
                 currentPort.Open();
                 currentPort.Write(buffer, 0, 5);
-                Thread.Sleep(2000);
+                Thread.Sleep(1000);
                 int count = currentPort.BytesToRead;
                 string returnMessage = "";
                 while (count > 0)
@@ -292,7 +274,6 @@ namespace KinectCoordinateMapping
                 }
                 Debug.WriteLine(returnMessage);
                 currentPort.Close();
-                //currentPort.PortName = returnMessage;
                 if (returnMessage.Contains("HELLO FROM ARDUINO"))
                 {
                     return true;
@@ -308,6 +289,9 @@ namespace KinectCoordinateMapping
             }
         }
 
+        /**********************************************************************
+        * Send joint data over serial to Arduino
+        **********************************************************************/
         private void SendSerial(Joint joint)
         {
             string data = joint.JointType + "," + joint.Position.X + "," + joint.Position.Y + "," + joint.Position.Z;
