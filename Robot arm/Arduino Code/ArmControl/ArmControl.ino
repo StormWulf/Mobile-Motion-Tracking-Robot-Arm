@@ -41,31 +41,9 @@ void setup() {
 void loop() {
     if (!connected){
         connect();
-//        if(pos < 2000){
-//            pos = pos + 1;
-//            Serial.print("#2 P");
-//            Serial.print(pos);
-//            Serial.print(" S50");
-//            Serial.println("");
-//        }
-        // Initial position
-        //Serial.println("#0 P970 #1 P1840 #2 P1640 #3 P1300 #4 P1500 S200");
     }
     else{
         if (Serial.available() > 0){
-//            digitalWrite(ledPin_3, HIGH);//
-//            delay(250);//
-//            digitalWrite(ledPin_3, LOW);//
-            
-//            if(pos > 1200){
-//                pos = pos - 1;
-//                Serial.print("#2 P");
-//                Serial.print(pos);
-//                Serial.print(" S50");
-//                Serial.println("");
-//            }
-            
-//            String serialIn = Serial.readString();
             String serialIn = Serial.readStringUntil('\n');
 //            if(serialIn == "Closing"){
 //                connected = false;
@@ -87,25 +65,11 @@ void loop() {
             String y = serialIn.substring(posY+1, posZ);
             String z = serialIn.substring(posZ+1);
             String data = joint + "," + x + "," + y + "," + z;
-//            Serial.println(data);
             if (joint == "HandRight"){
                 Serial.println("Arduino received command for right hand.");
-                //if (y.toFloat() >=0){
-//                    Serial.println(27, 'i');
                     moveY(y.toFloat());
                     moveX(x.toFloat());
                     moveZ(z.toFloat());
-                   /* if () {
-                      
-                    } */
-                //}
-                //else{
-//                    Serial.println(27, 'i');
-                   // moveY(y.toFloat());   
-               // }
-//                Serial.println("#0 P700 #2 P1200 S200 T1000");
-                
-//                cont = false;
             }
             else{
                 //Serial.println("New data received: " + serialIn);
@@ -121,7 +85,7 @@ void moveY(float y){
     else if (moveTo < 1080) moveTo = 1080;
     Serial.print("#2 P");
     Serial.print(moveTo);
-    Serial.print(" S500 T100");
+    Serial.print(" S600 T10");
     Serial.println("");
 }
 
@@ -132,7 +96,7 @@ void moveX(float x){
     else if (moveTo < 560) moveTo = 560;
     Serial.print("#0 P");
     Serial.print(moveTo);
-    Serial.print(" S500 T100");
+    Serial.print(" S600 T10");
     Serial.println("");
 }
 
@@ -143,7 +107,7 @@ void moveZ(float z){
     else if (moveTo < 860) moveTo = 860;
     Serial.print("#1 P");
     Serial.print(moveTo);
-    Serial.print(" S500 T100");
+    Serial.print(" S600 T10");
     Serial.println("");
 }
 
