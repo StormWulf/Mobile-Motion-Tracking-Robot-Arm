@@ -40,7 +40,7 @@ void setup() {
   delay(250);//
   digitalWrite(ledPin_3, LOW);//
   delay(250);//
-  Serial.println("#0 P920 #1 P1410 #2 P1630 #3 P1300 #4 P1500 S50");
+  Serial.println("#0 P1890 #1 P1410 #2 P1630 #3 P1300 #4 P1500 S50");
 }
 
 //Main Loop
@@ -77,6 +77,7 @@ void loop() {
                     moveY(y.toFloat());
                     moveX(x.toFloat());
                     moveZ(z.toFloat());
+                    Serial.println("#3 P1300");
             }
             else{
                 //Serial.println("New data received: " + serialIn);
