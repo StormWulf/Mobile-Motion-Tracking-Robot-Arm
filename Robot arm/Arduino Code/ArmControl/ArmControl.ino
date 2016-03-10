@@ -20,6 +20,13 @@ boolean cont = true;
 
 int pos = 1640;
 
+int min_y = 1080;
+int max_y = 1970;
+int min_x = 1200;
+int max_x = 2500;
+int min_z = 860;
+int max_z = 1800;
+
 //Setup
 
 void setup() {
@@ -81,8 +88,8 @@ void loop() {
 void moveY(float y){
     Serial.println(27, 'i');
     float moveTo = (-1483.333*y)+1525;
-    if (moveTo > 1970) moveTo = 1970;
-    else if (moveTo < 1080) moveTo = 1080;
+    if (moveTo > max_y) moveTo = max_y;
+    else if (moveTo < min_y) moveTo = min_y;
     Serial.print("#2 P");
     Serial.print(moveTo);
     Serial.print(" S600 T10");
@@ -91,9 +98,9 @@ void moveY(float y){
 
 void moveX(float x){
     Serial.println(27, 'i');
-    float moveTo = (1183*x)+678;
-    if (moveTo > 1270) moveTo = 1270;
-    else if (moveTo < 560) moveTo = 560;
+    float moveTo = (2167*x)+1417;
+    if (moveTo > max_x) moveTo = max_x;
+    else if (moveTo < min_x) moveTo = min_x;
     Serial.print("#0 P");
     Serial.print(moveTo);
     Serial.print(" S600 T10");
@@ -103,8 +110,8 @@ void moveX(float x){
 void moveZ(float z){
     Serial.println(27, 'i');
     float moveTo = (3133*z)-1647;
-    if (moveTo > 1800) moveTo = 1800;
-    else if (moveTo < 860) moveTo = 860;
+    if (moveTo > max_z) moveTo = max_z;
+    else if (moveTo < min_z) moveTo = min_z;
     Serial.print("#1 P");
     Serial.print(moveTo);
     Serial.print(" S600 T10");

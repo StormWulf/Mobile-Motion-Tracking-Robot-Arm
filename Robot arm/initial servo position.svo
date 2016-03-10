@@ -2,15 +2,16 @@
 Servo:
 @data{:
 valuef
-9.7e2:miniô:maxiÄ	:defaultiÜ:onT:
+1.2e3:miniô:maxiÄ	:defaultiÜ:onT:
 label"Servo 0:
-groupiú:@lastValue@	o;;{;	f1.84e3;
-iô;iÄ	;iÜ;T;"Servo 1;iú;@o;;{;	f1.64e3;
+groupiú:@lastValue@	o;;{;	f1.41e3;
+iô;iÄ	;iÜ;T;"Servo 1;iú;@o;;{;	f1.63e3;
 iô;iÄ	;iÜ;T;"Servo 2;iú;@o;;{;	f
 1.3e3;
 iô;iÄ	;iÜ;T;"Servo 3;iú;@o;;{;	f
 1.5e3;
-iô;iÄ	;iÜ;T;"Servo 4;iú;@o;;{;	f	1575;
+iô;iÄ	;iÜ;T;"Servo 4;iú;@o;;{;	f
+1.5e3;
 iô;iÄ	;iÜ;F;"Servo 5;iú;@o;;{;	f
 1.5e3;
 iô;iÄ	;iÜ;F;"Servo 6;iú;@!o;;{;	f
