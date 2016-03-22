@@ -30,10 +30,10 @@ namespace KinectCoordinateMapping
         float posZ = 0;
         float changeNeeded = 0.05F;
 
-        /**********************************************************************
+        /******************************************************************************************
         * Initialization and setup
         * Establish connection to Arduino
-        **********************************************************************/
+        ******************************************************************************************/
         public MainWindow()
         {
             InitializeComponent();
@@ -50,32 +50,42 @@ namespace KinectCoordinateMapping
             }
         }
 
-        /**********************************************************************
+        /******************************************************************************************
         * Enable SkeletonStream and turn on sensor
-        **********************************************************************/
+        ******************************************************************************************/
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             _sensor = KinectSensor.KinectSensors.Where(s => s.Status == KinectStatus.Connected).FirstOrDefault();
 
             if (_sensor != null)
             {
+                // Smoothing
+                TransformSmoothParameters smoothingParam = new TransformSmoothParameters();
+                {
+                    smoothingParam.Smoothing = 0.5f;            // Higher = more smoothed skeletal positions
+                    smoothingParam.Correction = 0.5f;           // Higher = correct to raw data more quickly
+                    smoothingParam.Prediction = 0.5f;           // Number of frames to predict into the future
+                    smoothingParam.JitterRadius = 0.05f;        // Any jitter beyond this radius is clamped to radius
+                    smoothingParam.MaxDeviationRadius = 0.04f;  // Maximum radius(m) filtered positions are allowed to deviate from raw data
+                }
+
                 _sensor.SkeletonStream.TrackingMode = SkeletonTrackingMode.Seated;  // Seated mode
-                _sensor.ColorStream.Enable();       // Enable color stream
-                _sensor.DepthStream.Enable();       // Enable depth stream
-                _sensor.SkeletonStream.Enable();    // Enable skeleton stream
+                _sensor.ColorStream.Enable();                   // Enable color stream
+                _sensor.DepthStream.Enable();                   // Enable depth stream
+                _sensor.SkeletonStream.Enable(smoothingParam);  // Enable skeleton stream
 
-                _sensor.AllFramesReady += Sensor_AllFramesReady;
+                _sensor.AllFramesReady += Sensor_AllFramesReady;    // Assign event handler
 
-                _sensor.Start();
-                currentPort.Open();
+                _sensor.Start();                                // Turn on sensor
+                currentPort.Open();                             // Open arduin COM port
             }
         }
 
-        /**********************************************************************
+        /******************************************************************************************
         * Called every frame
         * Read new position of joints and send update over serial if needed
         * Draw position of joints on screen
-        **********************************************************************/
+        ******************************************************************************************/
         void Sensor_AllFramesReady(object sender, AllFramesReadyEventArgs e)
         {
             // Color
@@ -108,10 +118,13 @@ namespace KinectCoordinateMapping
                 if (frame != null)
                 {
                     canvas.Children.Clear();
-
                     frame.CopySkeletonDataTo(_bodies);
-
+                    // Fill jointsCache with empty joints
                     if (jointsCache == null) jointsCache = _bodies[0].Joints;
+
+                    // Track only one skeleton (first in scene)
+                    int firstSkeleton = _bodies[0].TrackingId;
+                    _sensor.SkeletonStream.ChooseSkeletons(firstSkeleton);
 
                     foreach (var body in _bodies)
                     {
@@ -119,16 +132,16 @@ namespace KinectCoordinateMapping
                         {
                             // COORDINATE MAPPING
                             foreach (Joint joint in body.Joints)
-                            {
-                                if (joint.JointType != JointType.HandRight)
-                                {
-                                    continue;
-                                }
+                            {  
+                                // Only track right hand
+                                if (joint.JointType != JointType.HandRight) continue;
+
                                 // 3D coordinates in meters
                                 SkeletonPoint skeletonPoint = joint.Position;
                                 if(joint.JointType == JointType.HandRight)
                                 {
-                                    this.label1.Content = "Hand: " + skeletonPoint.X + ", " + skeletonPoint.Y + ", " + skeletonPoint.Z;
+                                    this.label1.Content = "Hand: " + skeletonPoint.X + ", " + 
+                                        skeletonPoint.Y + ", " + skeletonPoint.Z;
                                 }
 
                                 // 2D coordinates in pixels
@@ -137,7 +150,9 @@ namespace KinectCoordinateMapping
                                 if (_mode == CameraMode.Color)
                                 {
                                     // Skeleton-to-Color mapping
-                                    ColorImagePoint colorPoint = _sensor.CoordinateMapper.MapSkeletonPointToColorPoint(skeletonPoint, ColorImageFormat.RgbResolution640x480Fps30);
+                                    ColorImagePoint colorPoint = _sensor.CoordinateMapper.
+                                        MapSkeletonPointToColorPoint(skeletonPoint, 
+                                        ColorImageFormat.RgbResolution640x480Fps30);
 
                                     point.X = colorPoint.X;
                                     point.Y = colorPoint.Y;
@@ -145,7 +160,9 @@ namespace KinectCoordinateMapping
                                 else if (_mode == CameraMode.Depth) // Remember to change the Image and Canvas size to 320x240.
                                 {
                                     // Skeleton-to-Depth mapping
-                                    DepthImagePoint depthPoint = _sensor.CoordinateMapper.MapSkeletonPointToDepthPoint(skeletonPoint, DepthImageFormat.Resolution320x240Fps30);
+                                    DepthImagePoint depthPoint = _sensor.CoordinateMapper.
+                                        MapSkeletonPointToDepthPoint(skeletonPoint, 
+                                        DepthImageFormat.Resolution320x240Fps30);
 
                                     point.X = depthPoint.X;
                                     point.Y = depthPoint.Y;
@@ -177,7 +194,8 @@ namespace KinectCoordinateMapping
                                     float changeY = Math.Abs(posY - skeletonPoint.Y);
                                     float changeZ = Math.Abs(posZ - skeletonPoint.Z);
 
-                                    if (changeX > changeNeeded || changeY > changeNeeded || changeZ > changeNeeded)
+                                    if (changeX > changeNeeded || changeY > changeNeeded 
+                                        || changeZ > changeNeeded)
                                     {
                                         Task t1 = Task.Factory.StartNew(() => SendSerial(joint));
                                         posX = skeletonPoint.X;
@@ -192,21 +210,9 @@ namespace KinectCoordinateMapping
             }
         }
 
-        private void Window_Unloaded(object sender, RoutedEventArgs e)
-        {
-            Debug.WriteLine("Window_Unloaded: Turning off sensor and closing COM port...");
-            if (_sensor != null)
-            {
-                _sensor.Stop();
-            }
-            currentPort.WriteLine("Closing");
-            currentPort.Close();
-            Debug.WriteLine("Quitting...");
-        }
-
-        /**********************************************************************
+        /******************************************************************************************
         * Read data from com port
-        **********************************************************************/
+        ******************************************************************************************/
         private void ReadComPort()
         {
             try
@@ -217,10 +223,10 @@ namespace KinectCoordinateMapping
             catch(Exception ex) { Debug.WriteLine(ex.Message); }
         }
 
-        /**********************************************************************
+        /******************************************************************************************
         * Search all com ports for Arduino
         * Arduino will send acknowledment signal
-        **********************************************************************/
+        ******************************************************************************************/
         SerialPort currentPort;
         bool portFound;
         private void SetComPort()
@@ -289,12 +295,13 @@ namespace KinectCoordinateMapping
             }
         }
 
-        /**********************************************************************
+        /******************************************************************************************
         * Send joint data over serial to Arduino
-        **********************************************************************/
+        ******************************************************************************************/
         private void SendSerial(Joint joint)
         {
-            string data = joint.JointType + "," + joint.Position.X + "," + joint.Position.Y + "," + joint.Position.Z;
+            string data = joint.JointType + "," + joint.Position.X + "," + joint.Position.Y +
+                "," + joint.Position.Z;
             if (currentPort.IsOpen)
             {
                 Debug.WriteLine("Serial write: " + data);
@@ -304,19 +311,18 @@ namespace KinectCoordinateMapping
             else Debug.WriteLine("Com port not open.");
         }
 
+        /******************************************************************************************
+        * Window Closing: turn off sensor and send reset signal to arduino
+        ******************************************************************************************/
         private void Window_Closing(object sender, CancelEventArgs e)
         {
-        }
-
-        private void Window_Closed(object sender, EventArgs e)
-        {
-            Debug.WriteLine("Window_Closed: Turning off sensor and closing COM port...");
-            currentPort.WriteLine("Closing");
-            currentPort.Close();
+            Debug.WriteLine("Window_Closing: Turning off sensor and closing COM port...");
             if (_sensor != null)
             {
                 _sensor.Stop();
             }
+            currentPort.WriteLine("reset");
+            currentPort.Close();
             Debug.WriteLine("Quitting...");
         }
     }
