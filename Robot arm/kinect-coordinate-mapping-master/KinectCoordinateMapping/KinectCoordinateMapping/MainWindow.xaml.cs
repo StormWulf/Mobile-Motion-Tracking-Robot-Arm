@@ -62,9 +62,9 @@ namespace KinectCoordinateMapping
                 // Smoothing
                 TransformSmoothParameters smoothingParam = new TransformSmoothParameters();
                 {
-                    smoothingParam.Smoothing = 0.5f;            // Higher = more smoothed skeletal positions
-                    smoothingParam.Correction = 0.5f;           // Higher = correct to raw data more quickly
-                    smoothingParam.Prediction = 0.5f;           // Number of frames to predict into the future
+                    smoothingParam.Smoothing = 0.2f;            // Higher = more smoothed skeletal positions
+                    smoothingParam.Correction = 0.2f;           // Higher = correct to raw data more quickly
+                    smoothingParam.Prediction = 0.0f;           // Number of frames to predict into the future
                     smoothingParam.JitterRadius = 0.05f;        // Any jitter beyond this radius is clamped to radius
                     smoothingParam.MaxDeviationRadius = 0.04f;  // Maximum radius(m) filtered positions are allowed to deviate from raw data
                 }
@@ -124,7 +124,7 @@ namespace KinectCoordinateMapping
 
                     // Track only one skeleton (first in scene)
                     int firstSkeleton = _bodies[0].TrackingId;
-                    _sensor.SkeletonStream.ChooseSkeletons(firstSkeleton);
+                    //_sensor.SkeletonStream.ChooseSkeletons(firstSkeleton);
 
                     foreach (var body in _bodies)
                     {
