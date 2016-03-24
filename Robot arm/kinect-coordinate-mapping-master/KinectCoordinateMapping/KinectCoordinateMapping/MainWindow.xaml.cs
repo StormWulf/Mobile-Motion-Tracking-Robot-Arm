@@ -77,7 +77,7 @@ namespace KinectCoordinateMapping
                 _sensor.AllFramesReady += Sensor_AllFramesReady;    // Assign event handler
 
                 _sensor.Start();                                // Turn on sensor
-                currentPort.Open();                             // Open arduin COM port
+                currentPort.Open();                             // Open arduino COM port
             }
         }
 
