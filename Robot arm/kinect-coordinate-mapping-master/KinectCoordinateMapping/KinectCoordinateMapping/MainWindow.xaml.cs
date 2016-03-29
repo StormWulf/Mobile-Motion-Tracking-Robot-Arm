@@ -11,6 +11,7 @@ using System.Windows.Shapes;
 using System.Diagnostics;
 using System.IO.Ports;
 using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace KinectCoordinateMapping
 {
@@ -62,11 +63,11 @@ namespace KinectCoordinateMapping
                 // Smoothing
                 TransformSmoothParameters smoothingParam = new TransformSmoothParameters();
                 {
-                    smoothingParam.Smoothing = 0.2f;            // Higher = more smoothed skeletal positions
-                    smoothingParam.Correction = 0.2f;           // Higher = correct to raw data more quickly
+                    smoothingParam.Smoothing = 0.15f;            // Higher = more smoothed skeletal positions
+                    smoothingParam.Correction = 0.06f;           // Higher = correct to raw data more quickly
                     smoothingParam.Prediction = 0.0f;           // Number of frames to predict into the future
-                    smoothingParam.JitterRadius = 0.05f;        // Any jitter beyond this radius is clamped to radius
-                    smoothingParam.MaxDeviationRadius = 0.04f;  // Maximum radius(m) filtered positions are allowed to deviate from raw data
+                    smoothingParam.JitterRadius = 0.02f;        // Any jitter beyond this radius is clamped to radius
+                    smoothingParam.MaxDeviationRadius = 0.02f;  // Maximum radius(m) filtered positions are allowed to deviate from raw data
                 }
 
                 _sensor.SkeletonStream.TrackingMode = SkeletonTrackingMode.Seated;  // Seated mode
@@ -88,6 +89,12 @@ namespace KinectCoordinateMapping
         ******************************************************************************************/
         void Sensor_AllFramesReady(object sender, AllFramesReadyEventArgs e)
         {
+
+            if (Keyboard.IsKeyDown(Key.LeftCtrl))
+            {
+                currentPort.WriteLine("slowmode");
+            }
+
             // Color
             using (var frame = e.OpenColorImageFrame())
             {
