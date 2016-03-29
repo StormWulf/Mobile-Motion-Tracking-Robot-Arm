@@ -20,7 +20,6 @@ int min_x = 1200;
 int max_x = 2500;
 int min_z = 860;
 int max_z = 1800;
-float multiplyer = 0.6;
 
 //Setup
 void setup() {
@@ -51,10 +50,6 @@ void loop() {
               reset(); 
               return;
             }
-            if (serialIn == "slowmode") {
-                multiplyer = 1.4;   
-            }
-            else multiplyer = 1.0;
             int posX = serialIn.indexOf(',', posJoint + 1);
             int posY = serialIn.indexOf(',', posX + 1);
             int posZ = serialIn.indexOf(',', posY + 1);
@@ -79,8 +74,8 @@ void loop() {
 
 void moveY(float y){
     Xbee.println(27, 'i');      // Cancel any previous commands
-//    float moveTo = ((-1483.333*y)+1525);
-    float moveTo = (-1112*y)+1525;
+//    float moveTo = ((-1483.333*y)+1525);  // Original equation
+    float moveTo = (-1112*y)+1525;  // Slower movement
     if (moveTo > max_y) moveTo = max_y;
     else if (moveTo < min_y) moveTo = min_y;
     Xbee.print("#2 P");
@@ -91,8 +86,8 @@ void moveY(float y){
 
 void moveX(float x){
     Xbee.println(27, 'i');      // Cancel any previous commands
-//    float moveTo = (2167*x)+1417;
-    float moveTo = (1625*x)+1525;
+//    float moveTo = (2167*x)+1417; // Original equation
+    float moveTo = (1625*x)+1525;   // Slower movement
     if (moveTo > max_x) moveTo = max_x;
     else if (moveTo < min_x) moveTo = min_x;
     Xbee.print("#0 P");
@@ -103,8 +98,8 @@ void moveX(float x){
 
 void moveZ(float z){
     Xbee.println(27, 'i');      // Cancel any previous commands
-//    float moveTo = ((3133*z)-1647);
-    float moveTo = (1880*z)-456;
+//    float moveTo = ((3133*z)-1647);   // Original equation
+    float moveTo = (1880*z)-456;    // Slower movement
     if (moveTo > max_z) moveTo = max_z;
     else if (moveTo < min_z) moveTo = min_z;
     Xbee.print("#1 P");
