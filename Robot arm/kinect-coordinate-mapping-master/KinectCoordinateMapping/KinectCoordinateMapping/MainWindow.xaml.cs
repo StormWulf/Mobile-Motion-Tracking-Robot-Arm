@@ -11,7 +11,7 @@ using System.Windows.Shapes;
 using System.Diagnostics;
 using System.IO.Ports;
 using System.Threading.Tasks;
-using System.Windows.Input;
+using Microsoft.Kinect.Toolkit.Interaction;
 
 namespace KinectCoordinateMapping
 {
@@ -30,6 +30,11 @@ namespace KinectCoordinateMapping
         float posY = 0;
         float posZ = 0;
         float changeNeeded = 0.05F;
+        int bodyid = -1;
+        private InteractionStream _interactionStream;   // Interaction Stream for gestures
+        private UserInfo[] _userInfos;          // Information about the interactive users
+        bool handClosed = false;                // Bool to control gripper
+        bool previous_handClosed = true;       // Cache to send updates when bool has changed
 
         /******************************************************************************************
         * Initialization and setup
@@ -63,11 +68,11 @@ namespace KinectCoordinateMapping
                 // Smoothing
                 TransformSmoothParameters smoothingParam = new TransformSmoothParameters();
                 {
-                    smoothingParam.Smoothing = 0.15f;            // Higher = more smoothed skeletal positions
-                    smoothingParam.Correction = 0.06f;           // Higher = correct to raw data more quickly
+                    smoothingParam.Smoothing = 0.1f;            // Higher = more smoothed skeletal positions
+                    smoothingParam.Correction = 0.1f;           // Higher = correct to raw data more quickly
                     smoothingParam.Prediction = 0.0f;           // Number of frames to predict into the future
-                    smoothingParam.JitterRadius = 0.02f;        // Any jitter beyond this radius is clamped to radius
-                    smoothingParam.MaxDeviationRadius = 0.02f;  // Maximum radius(m) filtered positions are allowed to deviate from raw data
+                    smoothingParam.JitterRadius = 0.05f;        // Any jitter beyond this radius is clamped to radius
+                    smoothingParam.MaxDeviationRadius = 0.05f;  // Maximum radius(m) filtered positions are allowed to deviate from raw data
                 }
 
                 _sensor.SkeletonStream.TrackingMode = SkeletonTrackingMode.Seated;  // Seated mode
@@ -76,6 +81,10 @@ namespace KinectCoordinateMapping
                 _sensor.SkeletonStream.Enable(smoothingParam);  // Enable skeleton stream
 
                 _sensor.AllFramesReady += Sensor_AllFramesReady;    // Assign event handler
+
+                // Assign interaction stream and assign event handler
+                _interactionStream = new InteractionStream(_sensor, new DummyInteractionClient());
+                _interactionStream.InteractionFrameReady += InteractionStreamOnInteractionFrameReady;
 
                 _sensor.Start();                                // Turn on sensor
                 currentPort.Open();                             // Open arduino COM port
@@ -89,11 +98,13 @@ namespace KinectCoordinateMapping
         ******************************************************************************************/
         void Sensor_AllFramesReady(object sender, AllFramesReadyEventArgs e)
         {
+            // Gesture Info
 
-            if (Keyboard.IsKeyDown(Key.LeftCtrl))
-            {
-                currentPort.WriteLine("slowmode");
-            }
+
+            //if (Keyboard.IsKeyDown(Key.LeftCtrl))
+            //{
+            //    currentPort.WriteLine("slowmode");
+            //}
 
             // Color
             using (var frame = e.OpenColorImageFrame())
@@ -137,6 +148,12 @@ namespace KinectCoordinateMapping
                     {
                         if (body.TrackingState == SkeletonTrackingState.Tracked)
                         {
+                            if (bodyid <= -1)                   // Save first body id
+                            {
+                                bodyid = body.TrackingId;
+                            }
+                            else if (body.TrackingId != bodyid) continue;   // Only track first body
+
                             // COORDINATE MAPPING
                             foreach (Joint joint in body.Joints)
                             {  
@@ -145,11 +162,8 @@ namespace KinectCoordinateMapping
 
                                 // 3D coordinates in meters
                                 SkeletonPoint skeletonPoint = joint.Position;
-                                if(joint.JointType == JointType.HandRight)
-                                {
-                                    this.label1.Content = "Hand: " + skeletonPoint.X + ", " + 
-                                        skeletonPoint.Y + ", " + skeletonPoint.Z;
-                                }
+                                this.label1.Content = "Hand: " + skeletonPoint.X + ", " + 
+                                    skeletonPoint.Y + ", " + skeletonPoint.Z;
 
                                 // 2D coordinates in pixels
                                 Point point = new Point();
@@ -195,6 +209,7 @@ namespace KinectCoordinateMapping
 
                                 canvas.Children.Add(ellipse);
 
+                                // Send updated joint position to Arduino
                                 if (joint.JointType == JointType.HandRight)
                                 {
                                     float changeX = Math.Abs(posX - skeletonPoint.X);
@@ -210,6 +225,14 @@ namespace KinectCoordinateMapping
                                         posZ = skeletonPoint.Z;
                                     }
                                 }
+
+                                if (handClosed != previous_handClosed)
+                                {
+                                    currentPort.WriteLine(handClosed.ToString());
+                                    Debug.WriteLine(handClosed.ToString());
+                                    previous_handClosed = handClosed;
+                                }
+                                
                             }
                         }
                     }
@@ -225,7 +248,7 @@ namespace KinectCoordinateMapping
             try
             {
                 string message = currentPort.ReadLine();
-                Debug.WriteLine("\n" + message + "\n");
+                Debug.WriteLine(message);
             }
             catch(Exception ex) { Debug.WriteLine(ex.Message); }
         }
@@ -236,6 +259,7 @@ namespace KinectCoordinateMapping
         ******************************************************************************************/
         SerialPort currentPort;
         bool portFound;
+
         private void SetComPort()
         {
             try
@@ -313,7 +337,7 @@ namespace KinectCoordinateMapping
             {
                 Debug.WriteLine("Serial write: " + data);
                 currentPort.WriteLine(data);
-                ReadComPort();
+                //ReadComPort();
             }
             else Debug.WriteLine("Com port not open.");
         }
@@ -331,6 +355,129 @@ namespace KinectCoordinateMapping
             currentPort.WriteLine("reset");
             currentPort.Close();
             Debug.WriteLine("Quitting...");
+        }
+
+        /******************************************************************************************
+        * Interaction Event Handler.  Used to detect whether hand is opened or closed.
+        ******************************************************************************************/
+        private void InteractionStreamOnInteractionFrameReady(object sender, InteractionFrameReadyEventArgs e)
+        {
+            using (InteractionFrame frame = e.OpenInteractionFrame())
+            {
+                if (frame != null)
+                {
+                    if (_userInfos == null)
+                    {
+                        _userInfos = new UserInfo[InteractionFrame.UserInfoArrayLength];
+                    }
+
+                    frame.CopyInteractionDataTo(_userInfos);
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            foreach (UserInfo userInfo in _userInfos)
+            {
+                foreach (InteractionHandPointer handPointer in userInfo.HandPointers)
+                {
+                    string action = null;
+
+                    switch (handPointer.HandEventType)
+                    {
+                        case InteractionHandEventType.Grip:
+                            action = "gripped";
+                            break;
+
+                        case InteractionHandEventType.GripRelease:
+                            action = "released";
+                            break;
+                    }
+
+                    if (action != null)
+                    {
+                        string handSide = "unknown";
+
+                        switch (handPointer.HandType)
+                        {
+                            case InteractionHandType.Left:
+                                handSide = "left";
+                                break;
+
+                            case InteractionHandType.Right:
+                                handSide = "right";
+                                break;
+                        }
+
+                        if (handSide == "left")
+                        {
+                            if (action == "released")
+                            {
+                                // left hand released code here
+                            }
+                            else
+                            {
+                                // left hand gripped code here
+                            }
+                        }
+                        else
+                        {
+                            if (action == "released")
+                            {
+                                // right hand released code here
+                                handClosed = false;
+                                Debug.WriteLine("Hand opened");
+                            }
+                            else
+                            {
+                                // right hand gripped code here
+                                handClosed = true;
+                                Debug.WriteLine("Hand closed");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /******************************************************************************************
+        * Reset arm button clicked: reset arm position
+        ******************************************************************************************/
+        private void button_Click(object sender, RoutedEventArgs e)
+        {
+            currentPort.WriteLine("reset");
+        }
+
+        /******************************************************************************************
+        * Reset sensor button clicked: reset kinect sensor
+        ******************************************************************************************/
+        private void button1_Click(object sender, RoutedEventArgs e)
+        {
+            _sensor.Stop();
+            currentPort.WriteLine("reset");
+            _sensor.Start();
+        }
+    }
+
+    // Dummy class for interactions
+    public class DummyInteractionClient : IInteractionClient
+    {
+        public InteractionInfo GetInteractionInfoAtLocation(
+            int skeletonTrackingId,
+            InteractionHandType handType,
+            double x,
+            double y)
+        {
+            var result = new InteractionInfo();
+            result.IsGripTarget = true;
+            result.IsPressTarget = true;
+            result.PressAttractionPointX = 0.5;
+            result.PressAttractionPointY = 0.5;
+            result.PressTargetControlId = 1;
+
+            return result;
         }
     }
 
