@@ -77,6 +77,12 @@ void loop() {
               reset();                  // Reset arm to initial position     
               return;
             }
+            if (serialIn == "Hand closed") {
+                closeGripper();
+            }
+            if (serialIn == "Hand opened") {
+                openGripper();
+            }
             
             // Parse positions from serial input
             int posX = serialIn.indexOf(',', posJoint + 1);
@@ -204,7 +210,17 @@ void connect(){
 }
 
 // Reset arm to initial position
-void reset(){
+void reset() {
   Xbee.println("#0 P1890 #1 P1410 #2 P1630 #3 P1300 #4 P1500 S50");
   connected = false;
+}
+
+// Open gripper
+void openGripper() {
+    Xbee.println("#4 P1500 S50");
+}
+
+// Close gripper
+void closeGripper() {
+    Xbee.println("#4 P2280 S50");
 }
