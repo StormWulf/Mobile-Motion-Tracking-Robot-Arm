@@ -34,6 +34,14 @@ int max_x = 2500;
 int min_z = 860;
 int max_z = 1800;
 
+// Coordinated-Servo translation equation variables
+int x_m = 1500;
+int x_b = 1550;
+int y_m = -1238;
+int y_b = 1525;
+int z_m = -2080;
+int z_b = 3306;
+
 boolean connected = false;
 
 //Setup
@@ -81,7 +89,7 @@ void loop() {
             String data = joint + "," + x + "," + y + "," + z;
             
             if (joint == "HandRight"){  // Right hand instruction
-                Serial.println("Arduino received command for right hand.");
+                //Serial.println("Arduino received command for right hand.");
                 moveY(y.toFloat());     // Move Y servo to position
                 moveX(x.toFloat());     // Move X servo to position
                 moveZ(z.toFloat());     // Move Z servo to position
@@ -91,24 +99,10 @@ void loop() {
     }
 }
 
-// Move Y servo to specified position
-void moveY(float y){
-    Xbee.println(27, 'i');                  // Cancel any previous commands
-//    float moveTo = ((-1483.333*y)+1525);  // Original equation
-    float moveTo = (-1112*y)+1525;          // Slower movement
-    if (moveTo > max_y) moveTo = max_y;     // Clamp values higher than max
-    else if (moveTo < min_y) moveTo = min_y;    // Clamp values lower than min
-    Xbee.print("#2 P");
-    Xbee.print(moveTo);
-    Xbee.print(" S600 T10");
-    Xbee.println("");
-}
-
 // Move X servo to specified position
 void moveX(float x){
     Xbee.println(27, 'i');                  // Cancel any previous commands
-//    float moveTo = (2167*x)+1417;         // Original equation
-    float moveTo = (1625*x)+1525;           // Slower movement
+    float moveTo = (x_m*x) + x_b;           // Translate kinect coordinates to servo positions
     if (moveTo > max_x) moveTo = max_x;     // Clamp values higher than max
     else if (moveTo < min_x) moveTo = min_x;    // Clamp values lower than min
     Xbee.print("#0 P");
@@ -117,11 +111,22 @@ void moveX(float x){
     Xbee.println("");
 }
 
+// Move Y servo to specified position
+void moveY(float y){
+    Xbee.println(27, 'i');                  // Cancel any previous commands
+    float moveTo = (y_m*y) + y_b;           // Translate kinect coordinates to servo positions
+    if (moveTo > max_y) moveTo = max_y;     // Clamp values higher than max
+    else if (moveTo < min_y) moveTo = min_y;    // Clamp values lower than min
+    Xbee.print("#2 P");
+    Xbee.print(moveTo);
+    Xbee.print(" S600 T10");
+    Xbee.println("");
+}
+
 // Move Z servo to specified position
 void moveZ(float z){
     Xbee.println(27, 'i');                  // Cancel any previous commands
-//    float moveTo = ((3133*z)-1647);       // Original equation
-    float moveTo = (1880*z)-456;            // Slower movement
+    float moveTo = (z_m * z) + z_b;         // Translate kinect coordinates to servo positions
     if (moveTo > max_z) moveTo = max_z;     // Clamp values higher than max
     else if (moveTo < min_z) moveTo = min_z;    // Clamp values lower than min
     Xbee.print("#1 P");
