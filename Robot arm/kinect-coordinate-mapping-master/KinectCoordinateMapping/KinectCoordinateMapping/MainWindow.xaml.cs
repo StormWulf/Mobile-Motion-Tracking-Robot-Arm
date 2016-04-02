@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.IO.Ports;
 using System.Threading.Tasks;
 using Microsoft.Kinect.Toolkit.Interaction;
+using System.Windows.Input;
 
 namespace KinectCoordinateMapping
 {
@@ -71,8 +72,8 @@ namespace KinectCoordinateMapping
                     smoothingParam.Smoothing = 0.1f;            // Higher = more smoothed skeletal positions
                     smoothingParam.Correction = 0.1f;           // Higher = correct to raw data more quickly
                     smoothingParam.Prediction = 0.0f;           // Number of frames to predict into the future
-                    smoothingParam.JitterRadius = 0.05f;        // Any jitter beyond this radius is clamped to radius
-                    smoothingParam.MaxDeviationRadius = 0.05f;  // Maximum radius(m) filtered positions are allowed to deviate from raw data
+                    smoothingParam.JitterRadius = 0.1f;        // Any jitter beyond this radius is clamped to radius
+                    smoothingParam.MaxDeviationRadius = 0.1f;  // Maximum radius(m) filtered positions are allowed to deviate from raw data
                 }
 
                 _sensor.SkeletonStream.TrackingMode = SkeletonTrackingMode.Seated;  // Seated mode
@@ -98,14 +99,6 @@ namespace KinectCoordinateMapping
         ******************************************************************************************/
         void Sensor_AllFramesReady(object sender, AllFramesReadyEventArgs e)
         {
-            // Gesture Info
-
-
-            //if (Keyboard.IsKeyDown(Key.LeftCtrl))
-            //{
-            //    currentPort.WriteLine("slowmode");
-            //}
-
             // Color
             using (var frame = e.OpenColorImageFrame())
             {
@@ -232,7 +225,6 @@ namespace KinectCoordinateMapping
                                     Debug.WriteLine(handClosed.ToString());
                                     previous_handClosed = handClosed;
                                 }
-                                
                             }
                         }
                     }
@@ -428,13 +420,15 @@ namespace KinectCoordinateMapping
                             {
                                 // right hand released code here
                                 handClosed = false;
-                                Debug.WriteLine("Hand opened");
+                                Debug.WriteLine("HandOpened");
+                                currentPort.WriteLine("HandOpened");
                             }
                             else
                             {
                                 // right hand gripped code here
                                 handClosed = true;
-                                Debug.WriteLine("Hand closed");
+                                Debug.WriteLine("HandClosed");
+                                currentPort.WriteLine("HandClosed");
                             }
                         }
                     }
@@ -458,6 +452,35 @@ namespace KinectCoordinateMapping
             _sensor.Stop();
             currentPort.WriteLine("reset");
             _sensor.Start();
+        }
+
+        private void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.W)
+            {
+                Debug.WriteLine("Key W");
+                currentPort.WriteLine("forward");
+            }
+            if (e.Key == Key.S)
+            {
+                Debug.WriteLine("Key S");
+                currentPort.WriteLine("backward");
+            }
+            if (e.Key == Key.A)
+            {
+                Debug.WriteLine("Key A");
+                currentPort.WriteLine("left");
+            }
+            if (e.Key == Key.D)
+            {
+                Debug.WriteLine("Key D");
+                currentPort.WriteLine("right");
+            }
+            if (e.Key == Key.Space)
+            {
+                Debug.WriteLine("Key space");
+                currentPort.WriteLine("stop");
+            }
         }
     }
 

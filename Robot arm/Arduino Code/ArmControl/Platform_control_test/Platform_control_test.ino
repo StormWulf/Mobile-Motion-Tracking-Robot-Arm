@@ -2,32 +2,38 @@ void setup() {
   // open the serial port:
   Serial.begin(9600);
   // initialize control over the keyboard:
-  Keyboard.begin();
+//  Keyboard.begin();
 }
 
 void loop() {
   // check for incoming serial data:
-  if (Serial.available() > 0) {
-    // read incoming serial data:
-    char inChar = Serial.read();
-    // Type the next ASCII value from what you received:
-    Keyboard.write(inChar + 1);
-	while( inChar == 'W' ){
-	        forward();
-	}
-
-	while( inChar == 'A' ){
-		left();
-	}
-
-	while( inChar == 'S' ){
-		backward();
-	}
-
-	while( inChar == 'D' ){
-		right();
-	}
-  }
+//  if (Serial.available() > 0) {
+//    // read incoming serial data:
+//    char inChar = Serial.read();
+//    // Type the next ASCII value from what you received:
+//    Keyboard.write(inChar + 1);
+//	while( inChar == 'W' ){
+//	        forward();
+//	}
+//
+//	while( inChar == 'A' ){
+//		left();
+//	}
+//
+//	while( inChar == 'S' ){
+//		backward();
+//	}
+//
+//	while( inChar == 'D' ){
+//		right();
+//	}
+//  }
+    
+    if (Serial.available() > 0) {
+        String serialIn = Serial.readStringUntil('\n');
+        Serial.println("serialIn: " + serialIn);
+    }
+    
 }
 
 void forward(){

@@ -1,4 +1,4 @@
-//Setup Output
+#include <SoftwareSerial.h>
 
 /*
 Servo# - Function
@@ -13,8 +13,6 @@ Servo# - Function
 17 - Back right wheel
 */
 
-
-#include <SoftwareSerial.h>
 SoftwareSerial Xbee(2,3);   // Software serial for Xbee communication
 
 int ledPin_3 = 13;
@@ -39,10 +37,11 @@ int x_m = 1500;
 int x_b = 1550;
 int y_m = -1238;
 int y_b = 1525;
-int z_m = -2080;
-int z_b = 3306;
+int z_m = 1680;
+int z_b = -266;
 
 boolean connected = false;
+int count = 0;
 
 //Setup
 void setup() {
@@ -57,6 +56,8 @@ void setup() {
     delay(250);//
     digitalWrite(ledPin_3, LOW);//
     delay(250);//
+    
+    Xbee.println("#31 PO10 #30 PO-5");
     
     // Set arm to initial position
     reset();
@@ -74,14 +75,33 @@ void loop() {
             String serialIn = Serial.readStringUntil('\n');
             int posJoint = 0;
             if (serialIn == "reset"){   // Reset signal
-              reset();                  // Reset arm to initial position     
-              return;
+                reset();                  // Reset arm to initial position
+                connected = false;
+                return;
             }
-            if (serialIn == "Hand closed") {
+            if (serialIn == "HandClosed") {
                 closeGripper();
             }
-            if (serialIn == "Hand opened") {
+            else if (serialIn == "HandOpened") {
                 openGripper();
+            }
+            if (serialIn == "forward") {
+                forward();
+            }
+            else if (serialIn == "backward") {
+                backward();
+            }
+            else if (serialIn == "left") {
+                left();
+            }
+            else if (serialIn == "right") {
+                right();
+            }
+            else if (serialIn == "stop") {
+                stop();   
+            }
+            else {
+                stop();   
             }
             
             // Parse positions from serial input
@@ -101,6 +121,14 @@ void loop() {
                 moveZ(z.toFloat());     // Move Z servo to position
                 Xbee.println("#3 P1300");   // Move wrist to safe position
             }
+        }
+        else {
+//            if (count >= 1000) {
+//                count = 0;
+//                stop();
+//            }
+//            else count++;
+            stop();
         }
     }
 }
@@ -132,7 +160,7 @@ void moveY(float y){
 // Move Z servo to specified position
 void moveZ(float z){
     Xbee.println(27, 'i');                  // Cancel any previous commands
-    float moveTo = (z_m * z) + z_b;         // Translate kinect coordinates to servo positions
+    float moveTo = (z_m * z) - z_b;         // Translate kinect coordinates to servo positions
     if (moveTo > max_z) moveTo = max_z;     // Clamp values higher than max
     else if (moveTo < min_z) moveTo = min_z;    // Clamp values lower than min
     Xbee.print("#1 P");
@@ -211,16 +239,37 @@ void connect(){
 
 // Reset arm to initial position
 void reset() {
-  Xbee.println("#0 P1890 #1 P1410 #2 P1630 #3 P1300 #4 P1500 S50");
-  connected = false;
+    Xbee.println("#0 P1890 #1 P1410 #2 P1630 #3 P1300 #4 P1500 S50");
+    Xbee.println("#30 P1490 #31 P1490 #16 P1490 #17 P1490");
 }
 
 // Open gripper
 void openGripper() {
-    Xbee.println("#4 P1500 S50");
+    Xbee.println("#4 P1500 S600 T10");
 }
 
 // Close gripper
 void closeGripper() {
-    Xbee.println("#4 P2280 S50");
+    Xbee.println("#4 P2280 S600 T10");
+}
+
+void forward(){
+	Xbee.println("#31 P1550 #30 P1550 #16 P1460 #17 P1460");
+}
+
+void backward(){
+	Xbee.println("#31 P1460 #30 P1460 #16 P1550 #17 P1550");
+}
+
+//left wheels backward, right wheels forward
+void left(){ 
+	Xbee.println("#30 P1460 #31 P1460 #16 P1460 #17 P1460");
+}
+//right wheels backward, left wheels forward
+void right(){
+	Xbee.println("#31 P1550 #30 P1550 #16 P1550 #17 P1550");
+}
+
+void stop() {
+	Xbee.println("#31 P1490 #30 P1490 #16 P1490 #17 P1490");
 }
