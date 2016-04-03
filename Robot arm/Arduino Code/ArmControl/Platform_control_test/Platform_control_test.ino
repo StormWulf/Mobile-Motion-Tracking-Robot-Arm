@@ -1,54 +1,31 @@
+#include <SoftwareSerial.h>
+
+/*
+Servo# - Function
+0 - X movement
+1 - Z movement
+2 - Y movement
+3 - Wrist
+4 - Gripper
+31 - Front left wheel
+30 - Back left wheel
+16 - Front right wheel
+17 - Back right wheel
+*/
+
+SoftwareSerial Xbee(2,3);   // Software serial for Xbee communication
+
 void setup() {
-  // open the serial port:
-  Serial.begin(9600);
-  // initialize control over the keyboard:
-//  Keyboard.begin();
+    Xbee.begin(9600);
+    reset();
 }
 
 void loop() {
-  // check for incoming serial data:
-//  if (Serial.available() > 0) {
-//    // read incoming serial data:
-//    char inChar = Serial.read();
-//    // Type the next ASCII value from what you received:
-//    Keyboard.write(inChar + 1);
-//	while( inChar == 'W' ){
-//	        forward();
-//	}
-//
-//	while( inChar == 'A' ){
-//		left();
-//	}
-//
-//	while( inChar == 'S' ){
-//		backward();
-//	}
-//
-//	while( inChar == 'D' ){
-//		right();
-//	}
-//  }
-    
-    if (Serial.available() > 0) {
-        String serialIn = Serial.readStringUntil('\n');
-        Serial.println("serialIn: " + serialIn);
-    }
     
 }
 
-void forward(){
-	Serial.println("#31 P1555 #30 P1555 #16 P1555 #17 P1555");
-}
-
-void backward(){
-	Serial.println("#31 P1460 #30 P1460 #16 P1460 #17 P1460");
-}
-
-//left wheels backward, right wheels forward
-void left(){ 
-	Serial.println("#30 P1460 #31 P1460 #16 P1555 #17 P1555");
-}
-//right wheels backward, left wheels forward
-void right(){
-	Serial.println("#16 P1460 #17 P1460 #30 P1555 #31 P1555");
+// Reset arm to initial position
+void reset() {
+    Xbee.println(27, 'i');                  // Cancel any previous commands
+    Xbee.println("#0 P1890 #1 P1500 #2 P1630 #3 P1300 #4 P1500 S50");
 }

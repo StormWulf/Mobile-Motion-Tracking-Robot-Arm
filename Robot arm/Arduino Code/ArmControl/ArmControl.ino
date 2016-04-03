@@ -33,12 +33,12 @@ int min_z = 860;
 int max_z = 1800;
 
 // Coordinated-Servo translation equation variables
-int x_m = 1500;
-int x_b = 1550;
-int y_m = -1238;
+int x_m = 1885;
+int x_b = 1472;
+int y_m = -1242;
 int y_b = 1525;
-int z_m = 1680;
-int z_b = -266;
+int z_m = 2000;
+int z_b = -700;
 
 boolean connected = false;
 int count = 0;
@@ -57,7 +57,7 @@ void setup() {
     digitalWrite(ledPin_3, LOW);//
     delay(250);//
     
-    Xbee.println("#31 PO10 #30 PO-5");
+//    Xbee.println("#31 PO10 #30 PO-5");
     
     // Set arm to initial position
     reset();
@@ -74,10 +74,14 @@ void loop() {
         if (Serial.available() > 0){
             String serialIn = Serial.readStringUntil('\n');
             int posJoint = 0;
+            
             if (serialIn == "reset"){   // Reset signal
-                reset();                  // Reset arm to initial position
+                reset();                // Reset arm to initial position
                 connected = false;
                 return;
+            }
+            if (serialIn == "PosReset") {
+                reset();
             }
             if (serialIn == "HandClosed") {
                 closeGripper();
@@ -112,25 +116,43 @@ void loop() {
             String x = serialIn.substring(posX+1, posY);
             String y = serialIn.substring(posY+1, posZ);
             String z = serialIn.substring(posZ+1);
-            String data = joint + "," + x + "," + y + "," + z;
             
             if (joint == "HandRight"){  // Right hand instruction
-                //Serial.println("Arduino received command for right hand.");
+//                moveTo(x.toFloat(), y.toFloat(), z.toFloat());
+                Xbee.println("#3 P1300 S100");   // Move wrist to safe position
                 moveY(y.toFloat());     // Move Y servo to position
                 moveX(x.toFloat());     // Move X servo to position
                 moveZ(z.toFloat());     // Move Z servo to position
-                Xbee.println("#3 P1300");   // Move wrist to safe position
             }
         }
         else {
-//            if (count >= 1000) {
-//                count = 0;
-//                stop();
-//            }
-//            else count++;
             stop();
         }
     }
+}
+
+// Move servo positions to updated Kinect coordinates
+void moveTo(float x, float y, float z) {
+    Xbee.println(27, 'i');                  // Cancel any previous commands
+    float moveTo_X = (x_m * x) + x_b;
+    float moveTo_Y = (y_m * y) + y_b;
+    float moveTo_Z = (z_m * z) + z_b;
+    if (moveTo_X > max_x) moveTo_X = max_x;     // Clamp values higher than max
+    else if (moveTo_X < min_x) moveTo_X = min_x;    // Clamp values lower than min
+    if (moveTo_Y > max_y) moveTo_Y = max_y;     // Clamp values higher than max
+    else if (moveTo_Y < min_y) moveTo_Y = min_y;    // Clamp values lower than min
+    if (moveTo_Z > max_z) moveTo_Z = max_z;     // Clamp values higher than max
+    else if (moveTo_Z < min_z) moveTo_Z = min_z;    // Clamp values lower than min
+    Xbee.print("#0 P");
+    Xbee.print(moveTo_X);
+    Xbee.print(" S800 ");
+    Xbee.print("#2 P");
+    Xbee.print(moveTo_Y);
+    Xbee.print(" S800 ");
+    Xbee.print("#1 P");
+    Xbee.print(moveTo_Z);
+    Xbee.print(" S800");
+    Xbee.println(" T1");
 }
 
 // Move X servo to specified position
@@ -141,7 +163,7 @@ void moveX(float x){
     else if (moveTo < min_x) moveTo = min_x;    // Clamp values lower than min
     Xbee.print("#0 P");
     Xbee.print(moveTo);
-    Xbee.print(" S600 T10");
+    Xbee.print(" S500");
     Xbee.println("");
 }
 
@@ -153,19 +175,19 @@ void moveY(float y){
     else if (moveTo < min_y) moveTo = min_y;    // Clamp values lower than min
     Xbee.print("#2 P");
     Xbee.print(moveTo);
-    Xbee.print(" S600 T10");
+    Xbee.print(" S500");
     Xbee.println("");
 }
 
 // Move Z servo to specified position
 void moveZ(float z){
     Xbee.println(27, 'i');                  // Cancel any previous commands
-    float moveTo = (z_m * z) - z_b;         // Translate kinect coordinates to servo positions
+    float moveTo = (z_m * z) + z_b;         // Translate kinect coordinates to servo positions
     if (moveTo > max_z) moveTo = max_z;     // Clamp values higher than max
     else if (moveTo < min_z) moveTo = min_z;    // Clamp values lower than min
     Xbee.print("#1 P");
     Xbee.print(moveTo);
-    Xbee.print(" S600 T10");
+    Xbee.print(" S500");
     Xbee.println("");
 }
 
@@ -239,18 +261,18 @@ void connect(){
 
 // Reset arm to initial position
 void reset() {
-    Xbee.println("#0 P1890 #1 P1410 #2 P1630 #3 P1300 #4 P1500 S50");
-    Xbee.println("#30 P1490 #31 P1490 #16 P1490 #17 P1490");
+    Xbee.println("#0 P1890 #1 P1410 #2 P1630 #3 P1300 #4 P1500 T500");
+    Xbee.println("#31 P0 #30 P0 #16 P0 #17 P0");
 }
 
 // Open gripper
 void openGripper() {
-    Xbee.println("#4 P1500 S600 T10");
+    Xbee.println("#4 P1500 S700 T1");
 }
 
 // Close gripper
 void closeGripper() {
-    Xbee.println("#4 P2280 S600 T10");
+    Xbee.println("#4 P2280 S700 T1");
 }
 
 void forward(){
@@ -263,7 +285,7 @@ void backward(){
 
 //left wheels backward, right wheels forward
 void left(){ 
-	Xbee.println("#30 P1460 #31 P1460 #16 P1460 #17 P1460");
+	Xbee.println("#31 P1460 #30 P1460 #16 P1460 #17 P1460");
 }
 //right wheels backward, left wheels forward
 void right(){
@@ -271,5 +293,5 @@ void right(){
 }
 
 void stop() {
-	Xbee.println("#31 P1490 #30 P1490 #16 P1490 #17 P1490");
+    Xbee.println("#31 P0 #30 P0 #16 P0 #17 P0");
 }
