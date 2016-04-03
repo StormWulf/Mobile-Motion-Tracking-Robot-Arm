@@ -30,10 +30,10 @@ namespace KinectCoordinateMapping
         float posX = 0;
         float posY = 0;
         float posZ = 0;
-        float changeNeeded = 0.05F;
+        float changeNeeded = 0.01F;
         int bodyid = -1;
-        private InteractionStream _interactionStream;   // Interaction Stream for gestures
-        private UserInfo[] _userInfos;          // Information about the interactive users
+        InteractionStream _interactionStream;   // Interaction Stream for gestures
+        UserInfo[] _userInfos;                  // Information about the interactive users
         bool handClosed = false;                // Bool to control gripper
         bool previous_handClosed = true;       // Cache to send updates when bool has changed
 
@@ -69,15 +69,17 @@ namespace KinectCoordinateMapping
                 // Smoothing
                 TransformSmoothParameters smoothingParam = new TransformSmoothParameters();
                 {
-                    smoothingParam.Smoothing = 0.1f;            // Higher = more smoothed skeletal positions
-                    smoothingParam.Correction = 0.1f;           // Higher = correct to raw data more quickly
-                    smoothingParam.Prediction = 0.0f;           // Number of frames to predict into the future
-                    smoothingParam.JitterRadius = 0.1f;        // Any jitter beyond this radius is clamped to radius
-                    smoothingParam.MaxDeviationRadius = 0.1f;  // Maximum radius(m) filtered positions are allowed to deviate from raw data
+                    smoothingParam.Smoothing = 0.2f;            // Higher = more smoothed skeletal positions
+                    smoothingParam.Correction = 0.3f;           // Higher = correct to raw data more quickly
+                    smoothingParam.Prediction = 0.1f;           // Number of frames to predict into the future
+                    smoothingParam.JitterRadius = 0.2f;        // Any jitter beyond this radius is clamped to radius
+                    smoothingParam.MaxDeviationRadius = 0.5f;  // Maximum radius(m) filtered positions are allowed to deviate from raw data
                 }
 
                 _sensor.SkeletonStream.TrackingMode = SkeletonTrackingMode.Seated;  // Seated mode
+                //_sensor.SkeletonStream.EnableTrackingInNearRange = true;
                 _sensor.ColorStream.Enable();                   // Enable color stream
+                //_sensor.DepthStream.Range = DepthRange.Near;
                 _sensor.DepthStream.Enable();                   // Enable depth stream
                 _sensor.SkeletonStream.Enable(smoothingParam);  // Enable skeleton stream
 
@@ -116,6 +118,7 @@ namespace KinectCoordinateMapping
             {
                 if (frame != null)
                 {
+                    _interactionStream.ProcessDepth(frame.GetRawPixelData(), frame.Timestamp);
                     if (_mode == CameraMode.Depth)
                     {
                         camera.Source = frame.ToBitmap();
@@ -130,6 +133,8 @@ namespace KinectCoordinateMapping
                 {
                     canvas.Children.Clear();
                     frame.CopySkeletonDataTo(_bodies);
+                    var accelerometerReading = _sensor.AccelerometerGetCurrentReading();
+                    _interactionStream.ProcessSkeleton(_bodies, accelerometerReading, frame.Timestamp);
                     // Fill jointsCache with empty joints
                     if (jointsCache == null) jointsCache = _bodies[0].Joints;
 
@@ -222,7 +227,6 @@ namespace KinectCoordinateMapping
                                 if (handClosed != previous_handClosed)
                                 {
                                     currentPort.WriteLine(handClosed.ToString());
-                                    Debug.WriteLine(handClosed.ToString());
                                     previous_handClosed = handClosed;
                                 }
                             }
@@ -327,7 +331,7 @@ namespace KinectCoordinateMapping
                 "," + joint.Position.Z;
             if (currentPort.IsOpen)
             {
-                Debug.WriteLine("Serial write: " + data);
+                //Debug.WriteLine("Serial write: " + data);
                 currentPort.WriteLine(data);
                 //ReadComPort();
             }
@@ -441,7 +445,7 @@ namespace KinectCoordinateMapping
         ******************************************************************************************/
         private void button_Click(object sender, RoutedEventArgs e)
         {
-            currentPort.WriteLine("reset");
+            currentPort.WriteLine("PosReset");
         }
 
         /******************************************************************************************
@@ -450,7 +454,8 @@ namespace KinectCoordinateMapping
         private void button1_Click(object sender, RoutedEventArgs e)
         {
             _sensor.Stop();
-            currentPort.WriteLine("reset");
+            currentPort.WriteLine("PosReset");
+            bodyid = -1;
             _sensor.Start();
         }
 
