@@ -25,20 +25,20 @@ byte inputByte_3;
 byte inputByte_4;
 
 // Servo max/min positions
-int min_y = 1080;
+int max_x = 2130;
+int min_x = 1550;
 int max_y = 1970;
-int min_x = 1200;
-int max_x = 2500;
-int min_z = 860;
+int min_y = 1080;
 int max_z = 1800;
+int min_z = 860;
 
 // Coordinated-Servo translation equation variables
-int x_m = 1885;
-int x_b = 1472;
-int y_m = -1242;
-int y_b = 1525;
-int z_m = 2000;
-int z_b = -700;
+int x_m = 967;
+int x_b = 1743;
+int y_m = -2175;
+int y_b = 1742;
+int z_m = 1667;
+int z_b = -333;
 
 boolean connected = false;
 int count = 0;
@@ -261,7 +261,7 @@ void connect(){
 
 // Reset arm to initial position
 void reset() {
-    Xbee.println("#0 P1890 #1 P1410 #2 P1630 #3 P1300 #4 P1500 T500");
+    Xbee.println("#0 P1840 #1 P1410 #2 P1630 #3 P1300 #4 P1500 T500");
     Xbee.println("#31 P0 #30 P0 #16 P0 #17 P0");
 }
 

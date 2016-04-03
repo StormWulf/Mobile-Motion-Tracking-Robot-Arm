@@ -27,5 +27,5 @@ void loop() {
 // Reset arm to initial position
 void reset() {
     Xbee.println(27, 'i');                  // Cancel any previous commands
-    Xbee.println("#0 P1890 #1 P1500 #2 P1630 #3 P1300 #4 P1500 S50");
+    Xbee.println("#0 P1840 #1 P1500 #2 P1700 #3 P1300 #4 P1500 S50");
 }

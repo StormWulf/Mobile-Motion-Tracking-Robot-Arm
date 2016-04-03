@@ -30,7 +30,13 @@ namespace KinectCoordinateMapping
         float posX = 0;
         float posY = 0;
         float posZ = 0;
-        float changeNeeded = 0.01F;
+        float maxX = 0.5f;
+        float minX = -0.2f;
+        float maxY = 0.4f;
+        float minY = -0.2f;
+        float maxZ = 1.2f;
+        float minZ = 0.7f;
+        float changeNeeded = 0.005F;
         int bodyid = -1;
         InteractionStream _interactionStream;   // Interaction Stream for gestures
         UserInfo[] _userInfos;                  // Information about the interactive users
@@ -210,6 +216,31 @@ namespace KinectCoordinateMapping
                                 // Send updated joint position to Arduino
                                 if (joint.JointType == JointType.HandRight)
                                 {
+                                    if (skeletonPoint.X > maxX)
+                                    {
+                                        skeletonPoint.X = maxX;
+                                    } 
+                                    else if (skeletonPoint.X < minX)
+                                    {
+                                        skeletonPoint.X = minX;
+                                    }
+                                    if (skeletonPoint.Y > maxY)
+                                    {
+                                        skeletonPoint.Y = maxY;
+                                    }
+                                    else if (skeletonPoint.Y < minY)
+                                    {
+                                        skeletonPoint.Y = minY;
+                                    }
+                                    if (skeletonPoint.Z > maxZ)
+                                    {
+                                        skeletonPoint.Z = maxZ;
+                                    }
+                                    else if (skeletonPoint.Z < minZ)
+                                    {
+                                        skeletonPoint.Z = minZ;
+                                    }
+
                                     float changeX = Math.Abs(posX - skeletonPoint.X);
                                     float changeY = Math.Abs(posY - skeletonPoint.Y);
                                     float changeZ = Math.Abs(posZ - skeletonPoint.Z);
@@ -486,6 +517,17 @@ namespace KinectCoordinateMapping
                 Debug.WriteLine("Key space");
                 currentPort.WriteLine("stop");
             }
+        }
+
+        private void button2_Click(object sender, RoutedEventArgs e)
+        {
+            _sensor.Stop();
+            currentPort.WriteLine("PosReset");
+        }
+
+        private void button3_Click(object sender, RoutedEventArgs e)
+        {
+            _sensor.Start();
         }
     }
 
