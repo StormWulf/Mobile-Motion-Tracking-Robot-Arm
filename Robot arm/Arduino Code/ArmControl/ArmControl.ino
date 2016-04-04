@@ -118,7 +118,6 @@ void loop() {
             String z = serialIn.substring(posZ+1);
             
             if (joint == "HandRight"){  // Right hand instruction
-//                moveTo(x.toFloat(), y.toFloat(), z.toFloat());
                 Xbee.println("#3 P1300 S100");   // Move wrist to safe position
                 moveY(y.toFloat());     // Move Y servo to position
                 moveX(x.toFloat());     // Move X servo to position
@@ -129,30 +128,6 @@ void loop() {
             stop();
         }
     }
-}
-
-// Move servo positions to updated Kinect coordinates
-void moveTo(float x, float y, float z) {
-    Xbee.println(27, 'i');                  // Cancel any previous commands
-    float moveTo_X = (x_m * x) + x_b;
-    float moveTo_Y = (y_m * y) + y_b;
-    float moveTo_Z = (z_m * z) + z_b;
-    if (moveTo_X > max_x) moveTo_X = max_x;     // Clamp values higher than max
-    else if (moveTo_X < min_x) moveTo_X = min_x;    // Clamp values lower than min
-    if (moveTo_Y > max_y) moveTo_Y = max_y;     // Clamp values higher than max
-    else if (moveTo_Y < min_y) moveTo_Y = min_y;    // Clamp values lower than min
-    if (moveTo_Z > max_z) moveTo_Z = max_z;     // Clamp values higher than max
-    else if (moveTo_Z < min_z) moveTo_Z = min_z;    // Clamp values lower than min
-    Xbee.print("#0 P");
-    Xbee.print(moveTo_X);
-    Xbee.print(" S800 ");
-    Xbee.print("#2 P");
-    Xbee.print(moveTo_Y);
-    Xbee.print(" S800 ");
-    Xbee.print("#1 P");
-    Xbee.print(moveTo_Z);
-    Xbee.print(" S800");
-    Xbee.println(" T1");
 }
 
 // Move X servo to specified position
