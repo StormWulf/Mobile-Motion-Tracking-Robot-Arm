@@ -6,3 +6,5 @@ Senior design project from Jeffery Ruocco, Jeffrey Falberg, and Getro Jean-Bapis
 `Presentation` Tuesday, April 19
 
 `Final report` Friday, April 25
+
+`Design Expo (poster needed)` Tuesday, May 3
