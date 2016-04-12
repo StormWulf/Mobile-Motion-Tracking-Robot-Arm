@@ -28,16 +28,16 @@ byte inputByte_4;
 // Servo max/min positions
 const int max_x = 2130;
 const int min_x = 1550;
-const int max_y = 750;
+const int max_y = 800;
 const int min_y = 2000;
 const int max_z = 1700;
 const int min_z = 1000;
 
 // Coordinate max/min positions
-const float max_z_coord = 1.1;
-const float min_z_coord = 0.8;
-const float max_y_coord = 0.3;
-const float min_y_coord = -0.3;
+const float max_z_coord = 1.2;
+const float min_z_coord = 0.85;
+const float max_y_coord = 0.25;
+const float min_y_coord = -0.25;
 
 // Coordinated-Servo translation equation variables
 const int x_m = 967;
@@ -48,7 +48,7 @@ const int z_m = 1667;
 const int z_b = -333;
 
 // IK variables
-const float baseHeight = 5.0;
+const float baseHeight = 5.5;
 const float humerus = 5.75;
 const float ulna = 7.375;
 const float hand = 3.375;
@@ -82,16 +82,17 @@ void scaleCoord(float z, float y) {
 //    Serial.print(z);
 //    Serial.print(", ");
 //    Serial.println(y);
-    float z_Scaled;
-    float y_Scaled;
+    float z_Scaled = 0;
+    float y_Scaled = 0;
     float zK = z;
     float yK = y;
-    if (zK > max_z_coord) zK = max_z_coord;
-    else if (zK < min_z_coord) zK = min_z_coord;
-    if (yK > max_y_coord) yK = max_y_coord;
-    else if (yK < min_y_coord) yK = min_y_coord;
-    z_Scaled = (-44*zK) + 52.4;
+    if (zK >= max_z_coord) zK = max_z_coord;
+    else if (zK <= min_z_coord) zK = min_z_coord;
+    if (yK >= max_y_coord-0.01) yK = max_y_coord-0.01;
+    else if (yK <= min_y_coord+0.01) yK = min_y_coord+0.01;
+    z_Scaled = (-31.429*zK) + 41.714;
     y_Scaled = (30*yK) + 7.5;
+    if (y_Scaled >= 15.0) y_Scaled = 15.0;
 //    Serial.print("Z, Y: ");
 //    Serial.print(zK);
 //    Serial.print(", ");
@@ -140,13 +141,13 @@ void anglesToPos(float z, float y) {
     float y_Scaled;
     float z_Scaled;
     z_Scaled = (9.333*z) + 860;
-    y_Scaled = (-7.8125*y) + 2000;
+    y_Scaled = (-7.5*y) + 2000;
 //  Serial.print("Pos: ");
 //  Serial.print(z_Scaled);
 //  Serial.print(", ");
 //  Serial.println(y_Scaled);
-  z_Pos = z_Scaled;
-  y_Pos = y_Scaled;
+    z_Pos = z_Scaled;
+    y_Pos = y_Scaled;
 }
 
 //Main Loop
@@ -209,24 +210,24 @@ void loop() {
 //            Serial.println(y.toFloat());
             
             if (joint == "HandRight"){  // Right hand instruction
-                Serial.println("-------------------------");
-                Serial.print("Kinect coords: ");
-                Serial.print(x);
-                Serial.print(", ");
-                Serial.print(y);
-                Serial.print(", ");
-                Serial.println(z);
+//                Serial.println("-------------------------");
+//                Serial.print("Kinect coords: ");
+//                Serial.print(x);
+//                Serial.print(", ");
+//                Serial.print(y);
+//                Serial.print(", ");
+//                Serial.println(z);
                 scaleCoord(z.toFloat(), y.toFloat());
-                Serial.print("Arm coords: ");
-                Serial.print(y_Pos);
-                Serial.print(", ");
-                Serial.println(z_Pos);
+//                Serial.print("Arm coords: ");
+//                Serial.print(y_Pos);
+//                Serial.print(", ");
+//                Serial.println(z_Pos);
                 IK(z_Pos, y_Pos);
                 anglesToPos(z_Pos, y_Pos);
-                Serial.print("Arm Pos: ");
-                Serial.print(y_Pos);
-                Serial.print(", ");
-                Serial.println(z_Pos);
+//                Serial.print("Arm Pos: ");
+//                Serial.print(y_Pos);
+//                Serial.print(", ");
+//                Serial.println(z_Pos);
                 moveX(x.toFloat());     // Move X servo to position
                 moveY_IK(y_Pos);
                 moveZ_IK(z_Pos);
