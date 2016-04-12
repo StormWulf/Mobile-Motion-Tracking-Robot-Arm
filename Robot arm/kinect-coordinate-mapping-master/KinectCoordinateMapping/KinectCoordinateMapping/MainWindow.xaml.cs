@@ -36,12 +36,10 @@ namespace KinectCoordinateMapping
         float minY = -0.2f;
         float maxZ = 1.2f;
         float minZ = 0.7f;
-        float changeNeeded = 0.005F;
+        float changeNeeded = 0.01F;
         int bodyid = -1;
         InteractionStream _interactionStream;   // Interaction Stream for gestures
         UserInfo[] _userInfos;                  // Information about the interactive users
-        bool handClosed = false;                // Bool to control gripper
-        bool previous_handClosed = true;       // Cache to send updates when bool has changed
 
         /******************************************************************************************
         * Initialization and setup
@@ -78,8 +76,8 @@ namespace KinectCoordinateMapping
                     smoothingParam.Smoothing = 0.2f;            // Higher = more smoothed skeletal positions
                     smoothingParam.Correction = 0.3f;           // Higher = correct to raw data more quickly
                     smoothingParam.Prediction = 0.1f;           // Number of frames to predict into the future
-                    smoothingParam.JitterRadius = 0.2f;        // Any jitter beyond this radius is clamped to radius
-                    smoothingParam.MaxDeviationRadius = 0.5f;  // Maximum radius(m) filtered positions are allowed to deviate from raw data
+                    smoothingParam.JitterRadius = 0.05f;        // Any jitter beyond this radius is clamped to radius
+                    smoothingParam.MaxDeviationRadius = 0.05f;  // Maximum radius(m) filtered positions are allowed to deviate from raw data
                 }
 
                 _sensor.SkeletonStream.TrackingMode = SkeletonTrackingMode.Seated;  // Seated mode
@@ -252,14 +250,15 @@ namespace KinectCoordinateMapping
                                         posX = skeletonPoint.X;
                                         posY = skeletonPoint.Y;
                                         posZ = skeletonPoint.Z;
+                                        ReadComPort();
                                     }
                                 }
 
-                                if (handClosed != previous_handClosed)
-                                {
-                                    currentPort.WriteLine(handClosed.ToString());
-                                    previous_handClosed = handClosed;
-                                }
+                                //if (handClosed != previous_handClosed)
+                                //{
+                                //    currentPort.WriteLine(handClosed.ToString());
+                                //    previous_handClosed = handClosed;
+                                //}
                             }
                         }
                     }
@@ -364,7 +363,7 @@ namespace KinectCoordinateMapping
             {
                 //Debug.WriteLine("Serial write: " + data);
                 currentPort.WriteLine(data);
-                //ReadComPort();
+                ReadComPort();
             }
             else Debug.WriteLine("Com port not open.");
         }
@@ -443,10 +442,14 @@ namespace KinectCoordinateMapping
                             if (action == "released")
                             {
                                 // left hand released code here
+                                Debug.WriteLine("HandOpened");
+                                currentPort.WriteLine("HandOpened");
                             }
                             else
                             {
                                 // left hand gripped code here
+                                Debug.WriteLine("HandClosed");
+                                currentPort.WriteLine("HandClosed");
                             }
                         }
                         else
@@ -454,14 +457,14 @@ namespace KinectCoordinateMapping
                             if (action == "released")
                             {
                                 // right hand released code here
-                                handClosed = false;
+                                //handClosed = false;
                                 Debug.WriteLine("HandOpened");
                                 currentPort.WriteLine("HandOpened");
                             }
                             else
                             {
                                 // right hand gripped code here
-                                handClosed = true;
+                                //handClosed = true;
                                 Debug.WriteLine("HandClosed");
                                 currentPort.WriteLine("HandClosed");
                             }
@@ -519,12 +522,15 @@ namespace KinectCoordinateMapping
             }
         }
 
+        // Stop sensor
         private void button2_Click(object sender, RoutedEventArgs e)
         {
             _sensor.Stop();
             currentPort.WriteLine("PosReset");
+            bodyid = -1;
         }
 
+        // Start sensor
         private void button3_Click(object sender, RoutedEventArgs e)
         {
             _sensor.Start();

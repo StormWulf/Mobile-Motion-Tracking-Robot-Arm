@@ -26,31 +26,37 @@ byte inputByte_3;
 byte inputByte_4;
 
 // Servo max/min positions
-int max_x = 2130;
-int min_x = 1550;
-int max_y = 1970;
-int min_y = 1080;
-int max_z = 1800;
-int min_z = 860;
+const int max_x = 2130;
+const int min_x = 1550;
+const int max_y = 750;
+const int min_y = 2000;
+const int max_z = 1700;
+const int min_z = 1000;
+
+// Coordinate max/min positions
+const float max_z_coord = 1.1;
+const float min_z_coord = 0.8;
+const float max_y_coord = 0.3;
+const float min_y_coord = -0.3;
 
 // Coordinated-Servo translation equation variables
-int x_m = 967;
-int x_b = 1743;
-int y_m = -2175;
-int y_b = 1742;
-int z_m = 1667;
-int z_b = -333;
+const int x_m = 967;
+const int x_b = 1743;
+const int y_m = -2175;
+const int y_b = 1742;
+const int z_m = 1667;
+const int z_b = -333;
 
 // IK variables
-float baseHeight = 4.0;
-float humerus = 5.75;
-float ulna = 7.375;
-float hand = 3.375;
-float handDeg = -15.0;
-float coords[2];
+const float baseHeight = 5.0;
+const float humerus = 5.75;
+const float ulna = 7.375;
+const float hand = 3.375;
+const float handDeg = -15.0;
+float y_Pos = 0;
+float z_Pos = 0;
 
 boolean connected = false;
-int count = 0;
 
 //Setup
 void setup() {
@@ -66,68 +72,81 @@ void setup() {
     digitalWrite(ledPin_3, LOW);//
     delay(250);//
     
-//    Xbee.println("#31 PO10 #30 PO-5");
-    
     // Set arm to initial position
     reset();
 }
 
 // Scale Kinect coordinate to arm coordinate
-void scaleCoord(float x, float y) {
-    float newcoord[2];
-    newcoord[0] = (70*x) - 55;
-    newcoord[1] = (35*y) + 8;
-//    return newcoord;                // Return scaled coordinates
-  Serial.print("Scale: ");
-  Serial.print(newcoord[0]);
-  Serial.print(", ");
-  Serial.println(newcoord[1]);
-  coords[0] = newcoord[0];
-  coords[1] = newcoord[1];
+void scaleCoord(float z, float y) {
+//    Serial.print("Z, Y: ");
+//    Serial.print(z);
+//    Serial.print(", ");
+//    Serial.println(y);
+    float z_Scaled;
+    float y_Scaled;
+    float zK = z;
+    float yK = y;
+    if (zK > max_z_coord) zK = max_z_coord;
+    else if (zK < min_z_coord) zK = min_z_coord;
+    if (yK > max_y_coord) yK = max_y_coord;
+    else if (yK < min_y_coord) yK = min_y_coord;
+    z_Scaled = (-44*zK) + 52.4;
+    y_Scaled = (30*yK) + 7.5;
+//    Serial.print("Z, Y: ");
+//    Serial.print(zK);
+//    Serial.print(", ");
+//    Serial.println(yK);
+//    Serial.print("Scale: ");
+//    Serial.print(z_Scaled);
+//    Serial.print(", ");
+//    Serial.println(y_Scaled);
+    y_Pos = y_Scaled;
+    z_Pos = z_Scaled;
 }
 
 // Calculate servo angles from scaled coordinates using inverse kinematics
-void IK(float x, float y) {
+void IK(float z, float y) {
     float A1, A2, sw = 0;
-    float angles[2];
-    float wrist1 = y-(sin(radians(handDeg))*hand) - baseHeight;
-    float wrist2 = x-(cos(radians(handDeg))*hand);
-    Serial.print("Wrist1, Wrist2: ");
-    Serial.print(wrist1);
-    Serial.print(", ");
-    Serial.println(wrist2);
+    float y_Scaled = 0;
+    float z_Scaled = 0;
+    float wrist1 = y -(sin(radians(handDeg))*hand) - baseHeight;
+    float wrist2 = z -(cos(radians(handDeg))*hand);
+//    Serial.print("Wrist1, Wrist2: ");
+//    Serial.print(wrist1);
+//    Serial.print(", ");
+//    Serial.println(wrist2);
     sw = sqrt((wrist1*wrist1)+(wrist2*wrist2));
+    if (sw > (ulna+humerus)) sw = ulna+humerus;
     A1 = atan2( wrist1, wrist2 );
     A2 = acos(((humerus*humerus)-(ulna*ulna)+(sw*sw))/((2*humerus)*sw));
-    Serial.print("A1, A2: ");
-    Serial.print(A1);
-    Serial.print(", ");
-    Serial.println(A2);
-    angles[0] = degrees(A1+A2);
-    angles[1] = -(180-degrees(acos(((humerus*humerus)+(ulna*ulna)-(sw*sw))/((2*humerus)*ulna))));
-//    if (angles[0] < 0) angles[0] = angles[0] + 270;
-    if (angles[1] < 0) angles[1] = angles[1] + 180;
-//    return angles;                  // Return servo angles
-  Serial.print("IK: ");
-  Serial.print(angles[0]);
-  Serial.print(", ");
-  Serial.println(angles[1]);
-  coords[0] = angles[0];
-  coords[1] = angles[1];
+//    Serial.print("A1, A2: ");
+//    Serial.print(A1);
+//    Serial.print(", ");
+//    Serial.println(A2);
+    z_Scaled = degrees(A1+A2);
+    y_Scaled = -(180-degrees(acos(((humerus*humerus)+(ulna*ulna)-(sw*sw))/((2*humerus)*ulna))));
+//    if (z_Scaled < 0) z_Scaled = z_Scaled + 270;
+    if (y_Scaled < 0) y_Scaled = y_Scaled + 180;
+//  Serial.print("IK: ");
+//  Serial.print(z_Scaled);
+//  Serial.print(", ");
+//  Serial.println(y_Scaled);
+  z_Pos = z_Scaled;
+  y_Pos = y_Scaled;
 }
 
 // Calculate servo positions from servo angles
-void anglesToPos(float x, float y) {
-    float pos[2];
-    pos[0] = (13.33*x) + 300;
-    pos[1] = (11.11*y) + 500;
-//    return pos;                     // Return servo positions
-  Serial.print("Pos: ");
-  Serial.print(pos[0]);
-  Serial.print(", ");
-  Serial.println(pos[1]);
-  coords[0] = pos[0];
-  coords[1] = pos[1];
+void anglesToPos(float z, float y) {
+    float y_Scaled;
+    float z_Scaled;
+    z_Scaled = (9.333*z) + 860;
+    y_Scaled = (-7.8125*y) + 2000;
+//  Serial.print("Pos: ");
+//  Serial.print(z_Scaled);
+//  Serial.print(", ");
+//  Serial.println(y_Scaled);
+  z_Pos = z_Scaled;
+  y_Pos = y_Scaled;
 }
 
 //Main Loop
@@ -183,18 +202,35 @@ void loop() {
             String x = serialIn.substring(posX+1, posY);
             String y = serialIn.substring(posY+1, posZ);
             String z = serialIn.substring(posZ+1);
+//            Serial.println("-----------------------");
+//            Serial.println(serialIn);
+//            Serial.print(z.toFloat());
+//            Serial.print(", ");
+//            Serial.println(y.toFloat());
             
             if (joint == "HandRight"){  // Right hand instruction
-                scaleCoord(z.toFloat(), y.toFloat());
-                IK(coords[0], coords[1]);
-                anglesToPos(coords[0], coords[1]);
-                Serial.print(coords[0]);
+                Serial.println("-------------------------");
+                Serial.print("Kinect coords: ");
+                Serial.print(x);
                 Serial.print(", ");
-                Serial.println(coords[1]);
+                Serial.print(y);
+                Serial.print(", ");
+                Serial.println(z);
+                scaleCoord(z.toFloat(), y.toFloat());
+                Serial.print("Arm coords: ");
+                Serial.print(y_Pos);
+                Serial.print(", ");
+                Serial.println(z_Pos);
+                IK(z_Pos, y_Pos);
+                anglesToPos(z_Pos, y_Pos);
+                Serial.print("Arm Pos: ");
+                Serial.print(y_Pos);
+                Serial.print(", ");
+                Serial.println(z_Pos);
                 moveX(x.toFloat());     // Move X servo to position
-                moveYZ(coords[1], coords[0]);
-//                moveY(y.toFloat());     // Move Y servo to position
-//                moveZ(z.toFloat());     // Move Z servo to position
+                moveY_IK(y_Pos);
+                moveZ_IK(z_Pos);
+//                moveYZ(coords[1], coords[0]);
 //                Xbee.println("#3 P1300 S100");   // Move wrist to safe position
             }
         }
@@ -212,6 +248,26 @@ void moveX(float x){
     else if (moveTo < min_x) moveTo = min_x;    // Clamp values lower than min
     Xbee.print("#0 P");
     Xbee.print(moveTo);
+    Xbee.print(" S500");
+    Xbee.println("");
+}
+
+void moveY_IK(float y) {
+    Xbee.println(27, 'i');                  // Cancel any previous commands
+    if (y < max_y) y = max_y;     // Clamp values higher than max
+    else if (y > min_y) y = min_y;    // Clamp values lower than min
+    Xbee.print("#2 P");
+    Xbee.print(y);
+    Xbee.print(" S500");
+    Xbee.println("");
+}
+
+void moveZ_IK(float z) {
+    Xbee.println(27, 'i');                  // Cancel any previous commands
+    if (z > max_z) z = max_z;     // Clamp values higher than max
+    else if (z < min_z) z = min_z;    // Clamp values lower than min
+    Xbee.print("#1 P");
+    Xbee.print(z);
     Xbee.print(" S500");
     Xbee.println("");
 }
