@@ -42,11 +42,12 @@ int z_m = 1667;
 int z_b = -333;
 
 // IK variables
-float baseHeight = 3.25;
-float humerus = 4.75;
-float ulna = 4.75;
-float hand = 6.0;
+float baseHeight = 4.0;
+float humerus = 5.75;
+float ulna = 7.375;
+float hand = 3.375;
 float handDeg = -15.0;
+float coords[2];
 
 boolean connected = false;
 int count = 0;
@@ -72,35 +73,61 @@ void setup() {
 }
 
 // Scale Kinect coordinate to arm coordinate
-float* scaleCoord(float x, float y) {
+void scaleCoord(float x, float y) {
     float newcoord[2];
-    newcoord[0] = (70*x) -55;
-    newcoord[1] = (12.5*y) + 3.5;
-    return newcoord;                // Return scaled coordinates
+    newcoord[0] = (70*x) - 55;
+    newcoord[1] = (35*y) + 8;
+//    return newcoord;                // Return scaled coordinates
+  Serial.print("Scale: ");
+  Serial.print(newcoord[0]);
+  Serial.print(", ");
+  Serial.println(newcoord[1]);
+  coords[0] = newcoord[0];
+  coords[1] = newcoord[1];
 }
 
 // Calculate servo angles from scaled coordinates using inverse kinematics
-float* IK(float x, float y) {
+void IK(float x, float y) {
     float A1, A2, sw = 0;
     float angles[2];
     float wrist1 = y-(sin(radians(handDeg))*hand) - baseHeight;
     float wrist2 = x-(cos(radians(handDeg))*hand);
+    Serial.print("Wrist1, Wrist2: ");
+    Serial.print(wrist1);
+    Serial.print(", ");
+    Serial.println(wrist2);
     sw = sqrt((wrist1*wrist1)+(wrist2*wrist2));
-    A1 = atan2( wrist2, wrist1 );
+    A1 = atan2( wrist1, wrist2 );
     A2 = acos(((humerus*humerus)-(ulna*ulna)+(sw*sw))/((2*humerus)*sw));
-    angles[0] = (A1 + A2) * 57296 / 1000;
-    angles[1] = (acos((humerus*humerus)+(ulna*ulna)-(sw*sw))/((2*humerus)*ulna)) * 57296 /1000;
-    if (angles[0] < 0) angles[0] = angles[0] + 270;
-    if (angles[1] < 0) angles[1] = angles[1] + 270;
-    return angles;                  // Return servo angles
+    Serial.print("A1, A2: ");
+    Serial.print(A1);
+    Serial.print(", ");
+    Serial.println(A2);
+    angles[0] = degrees(A1+A2);
+    angles[1] = -(180-degrees(acos(((humerus*humerus)+(ulna*ulna)-(sw*sw))/((2*humerus)*ulna))));
+//    if (angles[0] < 0) angles[0] = angles[0] + 270;
+    if (angles[1] < 0) angles[1] = angles[1] + 180;
+//    return angles;                  // Return servo angles
+  Serial.print("IK: ");
+  Serial.print(angles[0]);
+  Serial.print(", ");
+  Serial.println(angles[1]);
+  coords[0] = angles[0];
+  coords[1] = angles[1];
 }
 
 // Calculate servo positions from servo angles
-float* anglesToPos(float x, float y) {
+void anglesToPos(float x, float y) {
     float pos[2];
     pos[0] = (13.33*x) + 300;
     pos[1] = (11.11*y) + 500;
-    return pos;                     // Return servo positions
+//    return pos;                     // Return servo positions
+  Serial.print("Pos: ");
+  Serial.print(pos[0]);
+  Serial.print(", ");
+  Serial.println(pos[1]);
+  coords[0] = pos[0];
+  coords[1] = pos[1];
 }
 
 //Main Loop
@@ -158,11 +185,14 @@ void loop() {
             String z = serialIn.substring(posZ+1);
             
             if (joint == "HandRight"){  // Right hand instruction
-                float* coords = scaleCoord(z.toFloat(), y.toFloat());
-                coords = IK(coords[0], coords[1]);
-                coords = anglesToPos(coords[0], coords[1]);
+                scaleCoord(z.toFloat(), y.toFloat());
+                IK(coords[0], coords[1]);
+                anglesToPos(coords[0], coords[1]);
+                Serial.print(coords[0]);
+                Serial.print(", ");
+                Serial.println(coords[1]);
                 moveX(x.toFloat());     // Move X servo to position
-                moveYZ(coords[0], coords[1]);
+                moveYZ(coords[1], coords[0]);
 //                moveY(y.toFloat());     // Move Y servo to position
 //                moveZ(z.toFloat());     // Move Z servo to position
 //                Xbee.println("#3 P1300 S100");   // Move wrist to safe position
