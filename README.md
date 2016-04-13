@@ -3,8 +3,14 @@ Senior design project from Jeffery Ruocco, Jeffrey Falberg, and Getro Jean-Bapis
 
 # Due dates
 
-`Presentation` Tuesday, April 19
+`Presentation` Tuesday, April 19, 6:00 PM
 
-`Final report` Friday, April 25
+`Submit list of equipment for Expo` Tuesday, April 19
 
-`Design Expo (poster needed)` Tuesday, May 3
+`Final report` Monday, April 25, 12:00 PM
+
+`Submit poster to Mark` Tuesday, April 26
+
+`Design Expo (poster)` Tuesday, May 3, 10:00 AM - 12:30 PM (Set up at 9:30 AM)
+
+`Design Expo (presentation)` Tuesday, May 3, 1:00 PM - 3:30 PM
