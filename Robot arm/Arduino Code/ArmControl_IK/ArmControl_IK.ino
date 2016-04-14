@@ -56,32 +56,26 @@ const float handDeg = -15.0;
 float y_Pos = 0;
 float z_Pos = 0;
 
-boolean connected = false;
+boolean connected = false;  // True when Kinect connected
 
 //Setup
 void setup() {
     pinMode(ledPin_3, OUTPUT);
     Serial.begin(9600);
     Xbee.begin(9600);
-    digitalWrite(ledPin_3, HIGH);//
-    delay(250);//
-    digitalWrite(ledPin_3, LOW);//
-    delay(250);//
-    digitalWrite(ledPin_3, HIGH);//
-    delay(250);//
-    digitalWrite(ledPin_3, LOW);//
-    delay(250);//
-    
-    // Set arm to initial position
-    reset();
+    digitalWrite(ledPin_3, HIGH);
+    delay(250);
+    digitalWrite(ledPin_3, LOW);
+    delay(250);
+    digitalWrite(ledPin_3, HIGH);
+    delay(250);
+    digitalWrite(ledPin_3, LOW);
+    delay(250);
+    reset();                // Set arm to initial position
 }
 
-// Scale Kinect coordinate to arm coordinate
+// Scale Kinect coordinates to arm coordinates
 void scaleCoord(float z, float y) {
-//    Serial.print("Z, Y: ");
-//    Serial.print(z);
-//    Serial.print(", ");
-//    Serial.println(y);
     float z_Scaled = 0;
     float y_Scaled = 0;
     float zK = z;
@@ -93,47 +87,26 @@ void scaleCoord(float z, float y) {
     z_Scaled = (-31.429*zK) + 41.714;
     y_Scaled = (30*yK) + 7.5;
     if (y_Scaled >= 15.0) y_Scaled = 15.0;
-//    Serial.print("Z, Y: ");
-//    Serial.print(zK);
-//    Serial.print(", ");
-//    Serial.println(yK);
-//    Serial.print("Scale: ");
-//    Serial.print(z_Scaled);
-//    Serial.print(", ");
-//    Serial.println(y_Scaled);
     y_Pos = y_Scaled;
     z_Pos = z_Scaled;
 }
 
-// Calculate servo angles from scaled coordinates using inverse kinematics
+// Calculate servo angles (degrees) from arm coordinates using inverse kinematics
 void IK(float z, float y) {
     float A1, A2, sw = 0;
-    float y_Scaled = 0;
     float z_Scaled = 0;
+    float y_Scaled = 0;
     float wrist1 = y -(sin(radians(handDeg))*hand) - baseHeight;
     float wrist2 = z -(cos(radians(handDeg))*hand);
-//    Serial.print("Wrist1, Wrist2: ");
-//    Serial.print(wrist1);
-//    Serial.print(", ");
-//    Serial.println(wrist2);
     sw = sqrt((wrist1*wrist1)+(wrist2*wrist2));
     if (sw > (ulna+humerus)) sw = ulna+humerus;
     A1 = atan2( wrist1, wrist2 );
     A2 = acos(((humerus*humerus)-(ulna*ulna)+(sw*sw))/((2*humerus)*sw));
-//    Serial.print("A1, A2: ");
-//    Serial.print(A1);
-//    Serial.print(", ");
-//    Serial.println(A2);
     z_Scaled = degrees(A1+A2);
     y_Scaled = -(180-degrees(acos(((humerus*humerus)+(ulna*ulna)-(sw*sw))/((2*humerus)*ulna))));
-//    if (z_Scaled < 0) z_Scaled = z_Scaled + 270;
     if (y_Scaled < 0) y_Scaled = y_Scaled + 180;
-//  Serial.print("IK: ");
-//  Serial.print(z_Scaled);
-//  Serial.print(", ");
-//  Serial.println(y_Scaled);
-  z_Pos = z_Scaled;
-  y_Pos = y_Scaled;
+    z_Pos = z_Scaled;
+    y_Pos = y_Scaled;
 }
 
 // Calculate servo positions from servo angles
@@ -142,10 +115,6 @@ void anglesToPos(float z, float y) {
     float z_Scaled;
     z_Scaled = (9.333*z) + 860;
     y_Scaled = (-7.5*y) + 2000;
-//  Serial.print("Pos: ");
-//  Serial.print(z_Scaled);
-//  Serial.print(", ");
-//  Serial.println(y_Scaled);
     z_Pos = z_Scaled;
     y_Pos = y_Scaled;
 }
@@ -160,8 +129,8 @@ void loop() {
     else{
         if (Serial.available() > 0){
             String serialIn = Serial.readStringUntil('\n');
-            int posJoint = 0;
             
+            // Reset signals
             if (serialIn == "reset"){   // Reset signal
                 reset();                // Reset arm to initial position
                 connected = false;
@@ -170,12 +139,16 @@ void loop() {
             if (serialIn == "PosReset") {
                 reset();
             }
+            
+            // Gripper signals
             if (serialIn == "HandClosed") {
                 closeGripper();
             }
             else if (serialIn == "HandOpened") {
                 openGripper();
             }
+            
+            // Platform signals
             if (serialIn == "forward") {
                 forward();
             }
@@ -196,56 +169,36 @@ void loop() {
             }
             
             // Parse positions from serial input
-            int posX = serialIn.indexOf(',', posJoint + 1);
+            int posX = serialIn.indexOf(',', 1);
             int posY = serialIn.indexOf(',', posX + 1);
             int posZ = serialIn.indexOf(',', posY + 1);
-            String joint = serialIn.substring(posJoint, posX);
+            String joint = serialIn.substring(0, posX);
             String x = serialIn.substring(posX+1, posY);
             String y = serialIn.substring(posY+1, posZ);
             String z = serialIn.substring(posZ+1);
-//            Serial.println("-----------------------");
-//            Serial.println(serialIn);
-//            Serial.print(z.toFloat());
-//            Serial.print(", ");
-//            Serial.println(y.toFloat());
             
             if (joint == "HandRight"){  // Right hand instruction
-//                Serial.println("-------------------------");
-//                Serial.print("Kinect coords: ");
-//                Serial.print(x);
-//                Serial.print(", ");
-//                Serial.print(y);
-//                Serial.print(", ");
-//                Serial.println(z);
-                scaleCoord(z.toFloat(), y.toFloat());
-//                Serial.print("Arm coords: ");
-//                Serial.print(y_Pos);
-//                Serial.print(", ");
-//                Serial.println(z_Pos);
-                IK(z_Pos, y_Pos);
-                anglesToPos(z_Pos, y_Pos);
-//                Serial.print("Arm Pos: ");
-//                Serial.print(y_Pos);
-//                Serial.print(", ");
-//                Serial.println(z_Pos);
-                moveX(x.toFloat());     // Move X servo to position
-                moveY_IK(y_Pos);
-                moveZ_IK(z_Pos);
-//                moveYZ(coords[1], coords[0]);
-//                Xbee.println("#3 P1300 S100");   // Move wrist to safe position
+                scaleCoord(z.toFloat(), y.toFloat());    // Scale kinect y/z coords to arm coords
+                IK(z_Pos, y_Pos);                        // Calculate servo angles from arm coords
+                anglesToPos(z_Pos, y_Pos);               // Calculate servo positions from servo angles
+                moveX(x.toFloat());                      // Move X servo to position
+                moveY(y_Pos);                            // Move Y servo to position
+                moveZ(z_Pos);                            // Move Z servo to position
+                //Xbee.println("#3 P1300 S100");           // Move wrist to safe position
             }
         }
+        // No serial input
         else {
-            stop();
+            stop();      // Make sure platform stops moving
         }
     }
 }
 
 // Move X servo to specified position
 void moveX(float x){
-    Xbee.println(27, 'i');                  // Cancel any previous commands
-    float moveTo = (x_m*x) + x_b;           // Translate kinect coordinates to servo positions
-    if (moveTo > max_x) moveTo = max_x;     // Clamp values higher than max
+    Xbee.println(27, 'i');                      // Cancel any previous commands
+    float moveTo = (x_m*x) + x_b;               // Translate kinect coordinates to servo positions
+    if (moveTo > max_x) moveTo = max_x;         // Clamp values higher than max
     else if (moveTo < min_x) moveTo = min_x;    // Clamp values lower than min
     Xbee.print("#0 P");
     Xbee.print(moveTo);
@@ -253,60 +206,22 @@ void moveX(float x){
     Xbee.println("");
 }
 
-void moveY_IK(float y) {
-    Xbee.println(27, 'i');                  // Cancel any previous commands
-    if (y < max_y) y = max_y;     // Clamp values higher than max
-    else if (y > min_y) y = min_y;    // Clamp values lower than min
+void moveY(float y) {
+    Xbee.println(27, 'i');                      // Cancel any previous commands
+    if (y < max_y) y = max_y;                   // Clamp values higher than max
+    else if (y > min_y) y = min_y;              // Clamp values lower than min
     Xbee.print("#2 P");
     Xbee.print(y);
     Xbee.print(" S500");
     Xbee.println("");
 }
 
-void moveZ_IK(float z) {
-    Xbee.println(27, 'i');                  // Cancel any previous commands
-    if (z > max_z) z = max_z;     // Clamp values higher than max
-    else if (z < min_z) z = min_z;    // Clamp values lower than min
+void moveZ(float z) {
+    Xbee.println(27, 'i');                      // Cancel any previous commands
+    if (z > max_z) z = max_z;                   // Clamp values higher than max
+    else if (z < min_z) z = min_z;              // Clamp values lower than min
     Xbee.print("#1 P");
     Xbee.print(z);
-    Xbee.print(" S500");
-    Xbee.println("");
-}
-
-void moveYZ(float y, float z) {
-    Xbee.println(27, 'i');                  // Cancel any previous commands
-//    if (y > max_y) y = max_y;
-//    else if (y < min_y) y = min_y;
-//    if (z > max_z) z = max_z;
-//    elst if (z < min_z) z = min_z;
-    Xbee.print("#2 P");
-    Xbee.print(y);
-    Xbee.print(" #1 P");
-    Xbee.print(z);
-    Xbee.print(" S500");
-    Xbee.println("");
-}
-
-// Move Y servo to specified position
-void moveY(float y){
-    Xbee.println(27, 'i');                  // Cancel any previous commands
-    float moveTo = (y_m*y) + y_b;           // Translate kinect coordinates to servo positions
-    if (moveTo > max_y) moveTo = max_y;     // Clamp values higher than max
-    else if (moveTo < min_y) moveTo = min_y;    // Clamp values lower than min
-    Xbee.print("#2 P");
-    Xbee.print(moveTo);
-    Xbee.print(" S500");
-    Xbee.println("");
-}
-
-// Move Z servo to specified position
-void moveZ(float z){
-    Xbee.println(27, 'i');                  // Cancel any previous commands
-    float moveTo = (z_m * z) + z_b;         // Translate kinect coordinates to servo positions
-    if (moveTo > max_z) moveTo = max_z;     // Clamp values higher than max
-    else if (moveTo < min_z) moveTo = min_z;    // Clamp values lower than min
-    Xbee.print("#1 P");
-    Xbee.print(moveTo);
     Xbee.print(" S500");
     Xbee.println("");
 }
@@ -379,7 +294,7 @@ void connect(){
     }
 }
 
-// Reset arm to initial position
+// Reset arm and platform to initial position
 void reset() {
     Xbee.println("#0 P1840 #1 P1410 #2 P1630 #3 P1300 #4 P1500 T500");
     Xbee.println("#31 P0 #30 P0 #16 P0 #17 P0");
@@ -395,23 +310,26 @@ void closeGripper() {
     Xbee.println("#4 P2280 S700 T1");
 }
 
+// Move platform forward
 void forward(){
-	Xbee.println("#31 P1550 #30 P1550 #16 P1460 #17 P1460");
+    Xbee.println("#31 P1550 #30 P1550 #16 P1460 #17 P1460");
 }
 
+// Move platform backward
 void backward(){
-	Xbee.println("#31 P1460 #30 P1460 #16 P1550 #17 P1550");
+    Xbee.println("#31 P1460 #30 P1460 #16 P1550 #17 P1550");
 }
 
-//left wheels backward, right wheels forward
+// Turn platform left. Left wheels backward, right wheels forward
 void left(){ 
-	Xbee.println("#31 P1460 #30 P1460 #16 P1460 #17 P1460");
+    Xbee.println("#31 P1460 #30 P1460 #16 P1460 #17 P1460");
 }
-//right wheels backward, left wheels forward
+// Turn platform right. Right wheels backward, left wheels forward
 void right(){
-	Xbee.println("#31 P1550 #30 P1550 #16 P1550 #17 P1550");
+    Xbee.println("#31 P1550 #30 P1550 #16 P1550 #17 P1550");
 }
 
+// Stop platform
 void stop() {
     Xbee.println("#31 P0 #30 P0 #16 P0 #17 P0");
 }
