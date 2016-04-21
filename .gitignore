@@ -46,3 +46,6 @@ Network Trash Folder
 Temporary Items
 .apdisk
 Documents/Senior_Design_Sample_Report.doc
+
+# Unignore `bin` dir
+!*/bin/*
