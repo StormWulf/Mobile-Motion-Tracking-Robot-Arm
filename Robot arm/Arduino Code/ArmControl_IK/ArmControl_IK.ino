@@ -184,7 +184,7 @@ void loop() {
                 moveX(x.toFloat());                      // Move X servo to position
                 moveY(y_Pos);                            // Move Y servo to position
                 moveZ(z_Pos);                            // Move Z servo to position
-                //Xbee.println("#3 P1300 S100");           // Move wrist to safe position
+                Xbee.println("#3 P1300 S100");           // Move wrist to safe position
             }
         }
         // No serial input
@@ -322,7 +322,7 @@ void backward(){
 
 // Turn platform left. Left wheels backward, right wheels forward
 void left(){ 
-    Xbee.println("#31 P1460 #30 P1460 #16 P1460 #17 P1460");
+    Xbee.println("#31 P1420 #30 P1420 #16 P1420 #17 P1420");
 }
 // Turn platform right. Right wheels backward, left wheels forward
 void right(){
