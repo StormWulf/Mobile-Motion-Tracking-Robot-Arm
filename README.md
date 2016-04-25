@@ -3,7 +3,7 @@ Senior design project from Jeffery Ruocco, Jeffrey Falberg, and Getro Jean-Bapis
 
 # Due dates
 
-- [ ] `Submit list of equipment for Expo` Tuesday, April 19
+- [x] `Submit list of equipment for Expo` Tuesday, April 19
 
 - [ ] `Submit poster to Mark` Tuesday, April 26
 
