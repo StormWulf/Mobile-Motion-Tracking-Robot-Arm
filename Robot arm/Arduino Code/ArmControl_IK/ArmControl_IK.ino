@@ -292,6 +292,9 @@ void connect(){
         digitalWrite(ledPin_3, LOW);
         connected = true;
     }
+    else {
+
+    }
 }
 
 // Reset arm and platform to initial position
@@ -307,17 +310,17 @@ void openGripper() {
 
 // Close gripper
 void closeGripper() {
-    Xbee.println("#4 P2280 S700 T1");
+    Xbee.println("#4 P2300 S700 T1");
 }
 
 // Move platform forward
 void forward(){
-    Xbee.println("#31 P1550 #30 P1550 #16 P1460 #17 P1460");
+    Xbee.println("#31 P1580 #30 P1580 #16 P1420 #17 P1420");
 }
 
 // Move platform backward
 void backward(){
-    Xbee.println("#31 P1460 #30 P1460 #16 P1550 #17 P1550");
+    Xbee.println("#31 P1420 #30 P1420 #16 P1580 #17 P1580");
 }
 
 // Turn platform left. Left wheels backward, right wheels forward

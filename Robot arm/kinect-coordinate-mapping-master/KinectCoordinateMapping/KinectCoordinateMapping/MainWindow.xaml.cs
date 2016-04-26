@@ -56,7 +56,8 @@ namespace KinectCoordinateMapping
             else{
                 Debug.WriteLine("\nCOULD NOT CONNECT TO ARDUINO.\n");
                 labelError.Content = "Could not connect to Arduino.";
-                MessageBox.Show("Could not connect to Arduino!", "Fatal Error", MessageBoxButton.OK);
+                MessageBox.Show("Could not connect to Arduino!\nPlease reset Arduino", "Fatal Error",
+                    MessageBoxButton.OK);
                 System.Environment.Exit(1);
             }
         }
@@ -95,6 +96,11 @@ namespace KinectCoordinateMapping
 
                 _sensor.Start();                                // Turn on sensor
                 currentPort.Open();                             // Open arduino COM port
+            }
+            else
+            {
+                MessageBox.Show("No Kinect found.", "Fatal Error", MessageBoxButton.OK);
+                System.Environment.Exit(1);
             }
         }
 
@@ -442,14 +448,14 @@ namespace KinectCoordinateMapping
                             if (action == "released")
                             {
                                 // left hand released code here
-                                Debug.WriteLine("HandOpened");
-                                currentPort.WriteLine("HandOpened");
+                                //Debug.WriteLine("HandOpened");
+                                //currentPort.WriteLine("HandOpened");
                             }
                             else
                             {
                                 // left hand gripped code here
-                                Debug.WriteLine("HandClosed");
-                                currentPort.WriteLine("HandClosed");
+                                //Debug.WriteLine("HandClosed");
+                                //currentPort.WriteLine("HandClosed");
                             }
                         }
                         else
