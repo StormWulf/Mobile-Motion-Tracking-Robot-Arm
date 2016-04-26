@@ -74,11 +74,11 @@ namespace KinectCoordinateMapping
                 // Smoothing
                 TransformSmoothParameters smoothingParam = new TransformSmoothParameters();
                 {
-                    smoothingParam.Smoothing = 0.4f;            // Higher = more smoothed skeletal positions
-                    smoothingParam.Correction = 0.3f;           // Higher = correct to raw data more quickly
-                    smoothingParam.Prediction = 0.8f;           // Number of frames to predict into the future
-                    smoothingParam.JitterRadius = 1.0f;        // Any jitter beyond this radius is clamped to radius
-                    smoothingParam.MaxDeviationRadius = 1.0f;  // Maximum radius(m) filtered positions are allowed to deviate from raw data
+                    smoothingParam.Smoothing = 0.3f;            // Higher = more smoothed skeletal positions
+                    smoothingParam.Correction = 0.4f;           // Higher = correct to raw data more quickly
+                    smoothingParam.Prediction = 0.5f;           // Number of frames to predict into the future
+                    smoothingParam.JitterRadius = 0.95f;        // Any jitter beyond this radius is clamped to radius
+                    smoothingParam.MaxDeviationRadius = 0.95f;  // Maximum radius(m) filtered positions are allowed to deviate from raw data
                 }
 
                 _sensor.SkeletonStream.TrackingMode = SkeletonTrackingMode.Seated;  // Seated mode

@@ -310,7 +310,7 @@ void openGripper() {
 
 // Close gripper
 void closeGripper() {
-    Xbee.println("#4 P2300 S700 T1");
+    Xbee.println("#4 P2500 S700 T1");
 }
 
 // Move platform forward
