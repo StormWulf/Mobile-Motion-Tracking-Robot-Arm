@@ -58,6 +58,11 @@ float z_Pos = 0;
 
 boolean connected = false;  // True when Kinect connected
 
+unsigned long interval=3000; // the time we need to wait
+unsigned long previousMillis=0; // millis() returns an unsigned long
+
+bool ledState = false; // state variable for the LED
+
 //Setup
 void setup() {
     pinMode(ledPin_3, OUTPUT);
@@ -178,14 +183,23 @@ void loop() {
             String z = serialIn.substring(posZ+1);
             
             if (joint == "HandRight"){  // Right hand instruction
+                unsigned long currentMillis = millis(); // grab current time
                 scaleCoord(z.toFloat(), y.toFloat());    // Scale kinect y/z coords to arm coords
                 IK(z_Pos, y_Pos);                        // Calculate servo angles from arm coords
                 anglesToPos(z_Pos, y_Pos);               // Calculate servo positions from servo angles
                 moveX(x.toFloat());                      // Move X servo to position
                 moveY(y_Pos);                            // Move Y servo to position
-                moveZ(z_Pos);                            // Move Z servo to position
-                Xbee.println("#3 P1300 S100");           // Move wrist to safe position
-            }
+                moveZ(z_Pos);                    // Move Z servo to position
+                //Xbee.println("#3 P1300 S100");           // Move wrist to safe position
+                // check if "interval" time has passed (1000 milliseconds)
+                if ((unsigned long)(currentMillis - previousMillis) >= interval) 
+                {
+                  ledState = !ledState; // "toggles" the state
+                  Xbee.println("#3 P1300 S100"); // sets the LED based on ledState
+                  // save the "current" time
+                  previousMillis = millis();
+                }
+          }
         }
         // No serial input
         else {
@@ -202,7 +216,7 @@ void moveX(float x){
     else if (moveTo < min_x) moveTo = min_x;    // Clamp values lower than min
     Xbee.print("#0 P");
     Xbee.print(moveTo);
-    Xbee.print(" S600");
+    Xbee.print(" S500");
     Xbee.println("");
 }
 
@@ -212,7 +226,7 @@ void moveY(float y) {
     else if (y > min_y) y = min_y;              // Clamp values lower than min
     Xbee.print("#2 P");
     Xbee.print(y);
-    Xbee.print(" S600");
+    Xbee.print(" S500");
     Xbee.println("");
 }
 
@@ -222,7 +236,7 @@ void moveZ(float z) {
     else if (z < min_z) z = min_z;              // Clamp values lower than min
     Xbee.print("#1 P");
     Xbee.print(z);
-    Xbee.print(" S600");
+    Xbee.print(" S500");
     Xbee.println("");
 }
 
@@ -299,37 +313,37 @@ void connect(){
 
 // Reset arm and platform to initial position
 void reset() {
-    Xbee.println("#0 P1840 #1 P1410 #2 P1630 #3 P1300 #4 P2500 T600");
+    Xbee.println("#0 P1840 #1 P1410 #2 P1630 #3 P1300 #4 P1500 T500");
     Xbee.println("#31 P0 #30 P0 #16 P0 #17 P0");
 }
 
 // Open gripper
 void openGripper() {
-    Xbee.println("#4 P1500 S800 T1");
+    Xbee.println("#4 P1500 S700 T1");
 }
 
 // Close gripper
 void closeGripper() {
-    Xbee.println("#4 P2500 S800 T1");
+    Xbee.println("#4 P2300 S700 T1");
 }
 
 // Move platform forward
 void forward(){
-    Xbee.println("#31 P1580 #30 P1580 #16 P1400 #17 P1400");
+    Xbee.println("#31 P1580 #30 P1580 #16 P1420 #17 P1420");
 }
 
 // Move platform backward
 void backward(){
-    Xbee.println("#31 P1400 #30 P1400 #16 P1580 #17 P1580");
+    Xbee.println("#31 P1420 #30 P1420 #16 P1580 #17 P1580");
 }
 
 // Turn platform left. Left wheels backward, right wheels forward
 void left(){ 
-    Xbee.println("#31 P1400 #30 P1400 #16 P1400 #17 P1400");
+    Xbee.println("#31 P1420 #30 P1420 #16 P1420 #17 P1420");
 }
 // Turn platform right. Right wheels backward, left wheels forward
 void right(){
-    Xbee.println("#31 P1580 #30 P1580 #16 P1580 #17 P1580");
+    Xbee.println("#31 P1550 #30 P1550 #16 P1550 #17 P1550");
 }
 
 // Stop platform
