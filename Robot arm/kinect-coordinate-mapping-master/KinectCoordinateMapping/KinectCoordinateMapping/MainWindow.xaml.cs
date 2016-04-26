@@ -36,7 +36,7 @@ namespace KinectCoordinateMapping
         float minY = -0.2f;
         float maxZ = 1.2f;
         float minZ = 0.7f;
-        float changeNeeded = 0.005F;
+        float changeNeeded = 0.009F;
         int bodyid = -1;
         InteractionStream _interactionStream;   // Interaction Stream for gestures
         UserInfo[] _userInfos;                  // Information about the interactive users
@@ -74,11 +74,11 @@ namespace KinectCoordinateMapping
                 // Smoothing
                 TransformSmoothParameters smoothingParam = new TransformSmoothParameters();
                 {
-                    smoothingParam.Smoothing = 0.3f;            // Higher = more smoothed skeletal positions
-                    smoothingParam.Correction = 0.4f;           // Higher = correct to raw data more quickly
-                    smoothingParam.Prediction = 0.5f;           // Number of frames to predict into the future
-                    smoothingParam.JitterRadius = 0.95f;        // Any jitter beyond this radius is clamped to radius
-                    smoothingParam.MaxDeviationRadius = 0.95f;  // Maximum radius(m) filtered positions are allowed to deviate from raw data
+                    smoothingParam.Smoothing = 0.6f;            // Higher = more smoothed skeletal positions
+                    smoothingParam.Correction = 0.7f;           // Higher = correct to raw data more quickly
+                    smoothingParam.Prediction = 0.7f;           // Number of frames to predict into the future
+                    smoothingParam.JitterRadius = 0.9f;        // Any jitter beyond this radius is clamped to radius
+                    smoothingParam.MaxDeviationRadius = 0.9f;  // Maximum radius(m) filtered positions are allowed to deviate from raw data
                 }
 
                 _sensor.SkeletonStream.TrackingMode = SkeletonTrackingMode.Seated;  // Seated mode

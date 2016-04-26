@@ -202,7 +202,7 @@ void moveX(float x){
     else if (moveTo < min_x) moveTo = min_x;    // Clamp values lower than min
     Xbee.print("#0 P");
     Xbee.print(moveTo);
-    Xbee.print(" S500");
+    Xbee.print(" S600");
     Xbee.println("");
 }
 
@@ -212,7 +212,7 @@ void moveY(float y) {
     else if (y > min_y) y = min_y;              // Clamp values lower than min
     Xbee.print("#2 P");
     Xbee.print(y);
-    Xbee.print(" S500");
+    Xbee.print(" S600");
     Xbee.println("");
 }
 
@@ -222,7 +222,7 @@ void moveZ(float z) {
     else if (z < min_z) z = min_z;              // Clamp values lower than min
     Xbee.print("#1 P");
     Xbee.print(z);
-    Xbee.print(" S500");
+    Xbee.print(" S600");
     Xbee.println("");
 }
 
@@ -299,37 +299,37 @@ void connect(){
 
 // Reset arm and platform to initial position
 void reset() {
-    Xbee.println("#0 P1840 #1 P1410 #2 P1630 #3 P1300 #4 P1500 T500");
+    Xbee.println("#0 P1840 #1 P1410 #2 P1630 #3 P1300 #4 P2500 T600");
     Xbee.println("#31 P0 #30 P0 #16 P0 #17 P0");
 }
 
 // Open gripper
 void openGripper() {
-    Xbee.println("#4 P1500 S700 T1");
+    Xbee.println("#4 P1500 S800 T1");
 }
 
 // Close gripper
 void closeGripper() {
-    Xbee.println("#4 P2500 S700 T1");
+    Xbee.println("#4 P2500 S800 T1");
 }
 
 // Move platform forward
 void forward(){
-    Xbee.println("#31 P1580 #30 P1580 #16 P1420 #17 P1420");
+    Xbee.println("#31 P1580 #30 P1580 #16 P1400 #17 P1400");
 }
 
 // Move platform backward
 void backward(){
-    Xbee.println("#31 P1420 #30 P1420 #16 P1580 #17 P1580");
+    Xbee.println("#31 P1400 #30 P1400 #16 P1580 #17 P1580");
 }
 
 // Turn platform left. Left wheels backward, right wheels forward
 void left(){ 
-    Xbee.println("#31 P1420 #30 P1420 #16 P1420 #17 P1420");
+    Xbee.println("#31 P1400 #30 P1400 #16 P1400 #17 P1400");
 }
 // Turn platform right. Right wheels backward, left wheels forward
 void right(){
-    Xbee.println("#31 P1550 #30 P1550 #16 P1550 #17 P1550");
+    Xbee.println("#31 P1580 #30 P1580 #16 P1580 #17 P1580");
 }
 
 // Stop platform
