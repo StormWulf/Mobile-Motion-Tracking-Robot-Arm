@@ -7,7 +7,7 @@ Senior design project from Jeffery Ruocco, Jeffrey Falberg, and Getro Jean-Bapis
 
 - [x] `Submit poster to Mark` Tuesday, April 26
 
-- [ ] `Final report` Monday, April 28, 12:00 PM
+- [x] `Final report` Thursday, April 28, 11:59 PM
 
 - [ ] `Design Expo (poster)` Tuesday, May 3, 10:00 AM - 12:30 PM (Set up at 9:30 AM)
 
@@ -15,7 +15,7 @@ Senior design project from Jeffery Ruocco, Jeffrey Falberg, and Getro Jean-Bapis
 
 # To-do
 
-- [ ] Report
+- [x] Report
 - [x] Poster
 - [ ] Presentation
 - [ ] Finish platform movement
