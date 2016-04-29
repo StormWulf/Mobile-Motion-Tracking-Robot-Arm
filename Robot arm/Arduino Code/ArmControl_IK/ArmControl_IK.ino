@@ -40,8 +40,8 @@ const float max_y_coord = 0.25;
 const float min_y_coord = -0.25;
 
 // Coordinated-Servo translation equation variables
-const int x_m = 967;
-const int x_b = 1743;
+const int x_m = 1160;
+const int x_b = 1666;
 const int y_m = -2175;
 const int y_b = 1742;
 const int z_m = 1667;
