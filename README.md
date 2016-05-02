@@ -17,5 +17,4 @@ Senior design project from Jeffery Ruocco, Jeffrey Falberg, and Getro Jean-Bapis
 
 - [x] Report
 - [x] Poster
-- [ ] Presentation
-- [ ] Finish platform movement
+- [x] Presentation
