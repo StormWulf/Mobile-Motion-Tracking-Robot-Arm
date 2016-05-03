@@ -1,4 +1,12 @@
-﻿using Microsoft.Kinect;
+﻿/*******************************************************************************
+* Mobile Motion Tracking Robot Arm - Spring 2016 Senior Design Project
+* Microsoft Kinect Xbox 360, Motion Tracking and Platform Control
+* Author: Jeff Ruocco (jruoc2@unh.newhaven.edu)
+* Co-Author: Jeff Falberg (jfalb1@unh.newhaven.edu)
+* GitHub: https://github.com/StormWulf/Mobile-Motion-Tracking-Robot-Arm
+*******************************************************************************/
+
+using Microsoft.Kinect;
 using System;
 using System.ComponentModel;
 using System.Collections.Generic;
@@ -30,12 +38,6 @@ namespace KinectCoordinateMapping
         float posX = 0;
         float posY = 0;
         float posZ = 0;
-        float maxX = 0.5f;
-        float minX = -0.2f;
-        float maxY = 0.4f;
-        float minY = -0.2f;
-        float maxZ = 1.2f;
-        float minZ = 0.7f;
         float changeNeeded = 0.009F;
         int bodyid = -1;
         InteractionStream _interactionStream;   // Interaction Stream for gestures
@@ -82,9 +84,7 @@ namespace KinectCoordinateMapping
                 }
 
                 _sensor.SkeletonStream.TrackingMode = SkeletonTrackingMode.Seated;  // Seated mode
-                //_sensor.SkeletonStream.EnableTrackingInNearRange = true;
                 _sensor.ColorStream.Enable();                   // Enable color stream
-                //_sensor.DepthStream.Range = DepthRange.Near;
                 _sensor.DepthStream.Enable();                   // Enable depth stream
                 _sensor.SkeletonStream.Enable(smoothingParam);  // Enable skeleton stream
 
@@ -150,7 +150,6 @@ namespace KinectCoordinateMapping
 
                     // Track only one skeleton (first in scene)
                     int firstSkeleton = _bodies[0].TrackingId;
-                    //_sensor.SkeletonStream.ChooseSkeletons(firstSkeleton);
 
                     foreach (var body in _bodies)
                     {
@@ -220,31 +219,6 @@ namespace KinectCoordinateMapping
                                 // Send updated joint position to Arduino
                                 if (joint.JointType == JointType.HandRight)
                                 {
-                                    //if (skeletonPoint.X > maxX)
-                                    //{
-                                    //    skeletonPoint.X = maxX;
-                                    //} 
-                                    //else if (skeletonPoint.X < minX)
-                                    //{
-                                    //    skeletonPoint.X = minX;
-                                    //}
-                                    //if (skeletonPoint.Y > maxY)
-                                    //{
-                                    //    skeletonPoint.Y = maxY;
-                                    //}
-                                    //else if (skeletonPoint.Y < minY)
-                                    //{
-                                    //    skeletonPoint.Y = minY;
-                                    //}
-                                    //if (skeletonPoint.Z > maxZ)
-                                    //{
-                                    //    skeletonPoint.Z = maxZ;
-                                    //}
-                                    //else if (skeletonPoint.Z < minZ)
-                                    //{
-                                    //    skeletonPoint.Z = minZ;
-                                    //}
-
                                     float changeX = Math.Abs(posX - skeletonPoint.X);
                                     float changeY = Math.Abs(posY - skeletonPoint.Y);
                                     float changeZ = Math.Abs(posZ - skeletonPoint.Z);
@@ -256,15 +230,8 @@ namespace KinectCoordinateMapping
                                         posX = skeletonPoint.X;
                                         posY = skeletonPoint.Y;
                                         posZ = skeletonPoint.Z;
-                                        //ReadComPort();
                                     }
                                 }
-
-                                //if (handClosed != previous_handClosed)
-                                //{
-                                //    currentPort.WriteLine(handClosed.ToString());
-                                //    previous_handClosed = handClosed;
-                                //}
                             }
                         }
                     }
@@ -367,9 +334,7 @@ namespace KinectCoordinateMapping
                 "," + joint.Position.Z;
             if (currentPort.IsOpen)
             {
-                //Debug.WriteLine("Serial write: " + data);
                 currentPort.WriteLine(data);
-                //ReadComPort();
             }
             else Debug.WriteLine("Com port not open.");
         }
@@ -463,14 +428,12 @@ namespace KinectCoordinateMapping
                             if (action == "released")
                             {
                                 // right hand released code here
-                                //handClosed = false;
                                 Debug.WriteLine("HandOpened");
                                 currentPort.WriteLine("HandOpened");
                             }
                             else
                             {
                                 // right hand gripped code here
-                                //handClosed = true;
                                 Debug.WriteLine("HandClosed");
                                 currentPort.WriteLine("HandClosed");
                             }

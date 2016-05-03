@@ -13,8 +13,8 @@
         <Label x:Name="label1" Content="Hand: " HorizontalAlignment="Left" Margin="10,533,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.47,0.894"/>
         <Label x:Name="labelError" Content="" Margin="200,538,0,0" VerticalAlignment="Top" Width="582" Foreground="Red" Height="26" HorizontalAlignment="Left" HorizontalContentAlignment="Right"/>
         <Button x:Name="button" Content="Reset Arm Position" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" Click="button_Click"/>
-        <Button x:Name="button1" Content="Reset Kinect Sensor" HorizontalAlignment="Left" Margin="675,10,0,0" VerticalAlignment="Top" Click="button1_Click" RenderTransformOrigin="-2.183,1.424"/>
-        <Button x:Name="button2" Content="Stop" HorizontalAlignment="Left" Margin="473,10,0,0" VerticalAlignment="Top" Width="75" Click="button2_Click"/>
-        <Button x:Name="button3" Content="Start" HorizontalAlignment="Left" Margin="261,10,0,0" VerticalAlignment="Top" Width="75" Click="button3_Click"/>
+        <Button x:Name="button1" Content="Reset Kinect" HorizontalAlignment="Left" Margin="675,10,0,0" VerticalAlignment="Top" Click="button1_Click" RenderTransformOrigin="-2.183,1.424"/>
+        <Button x:Name="button2" Content="Stop Kinect" HorizontalAlignment="Left" Margin="473,10,0,0" VerticalAlignment="Top" Width="75" Click="button2_Click"/>
+        <Button x:Name="button3" Content="Start Kinect" HorizontalAlignment="Left" Margin="261,10,0,0" VerticalAlignment="Top" Width="75" Click="button3_Click"/>
     </Grid>
 </Window>

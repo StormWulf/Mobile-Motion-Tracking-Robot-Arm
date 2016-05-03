@@ -1,3 +1,11 @@
+/*******************************************************************************
+* Mobile Motion Tracking Robot Arm - Spring 2016 Senior Design Project
+* Lynxmotion AL5D Arm Control
+* Author: Jeff Ruocco (jruoc2@unh.newhaven.edu)
+* Co-Author: Jeff Falberg (jfalb1@unh.newhaven.edu)
+* GitHub: https://github.com/StormWulf/Mobile-Motion-Tracking-Robot-Arm
+*******************************************************************************/
+
 #include <SoftwareSerial.h>
 #include <Math.h>
 
@@ -80,18 +88,8 @@ void scaleCoord(float z, float y) {
     float z_Scaled, y_Scaled = 0;
     float zK = z;
     float yK = y;
-//    if (zK >= max_z_coord-0.01) zK = max_z_coord-0.01;
-//    else if (zK <= min_z_coord+0.1) zK = min_z_coord+0.1;
-//    if (yK >= max_y_coord-0.01) yK = max_y_coord-0.01;
-//    else if (yK <= min_y_coord+0.01) yK = min_y_coord+0.01;
-//    z_Scaled = (-31.429*zK) + 41.714;
     z_Scaled = (-31.429*zK) + 42.714;
-//    y_Scaled = (30*yK) + 7.5;
     y_Scaled = (34*yK) + 6.8;
-//    if (y_Scaled >= 17.0) y_Scaled = 17.0;
-//    if (y_Scaled <= 0.0) y_Scaled = 0.0;
-//    if (z_Scaled >= 16.0) z_Scaled = 16.0;
-//    if (z_Scaled <= 5.0) z_Scaled = 5.0;
     y_Pos = y_Scaled;
     z_Pos = z_Scaled;
     Serial.print("y scale: "); Serial.print(y_Pos); Serial.print("   z scale: "); Serial.println(z_Pos);
@@ -107,11 +105,9 @@ void IK(float z, float y) {
     sw = sqrt((wristY*wristY)+(wristZ*wristZ));
     if (sw > (ulna+humerus)) sw = ulna+humerus;
     A1 = atan2( wristY, wristZ );
-//    A1 = atan2( wristZ, wristY );
     A2 = acos(((humerus*humerus)-(ulna*ulna)+(sw*sw))/((2*humerus)*sw));
     z_Scaled = degrees(A1+A2);
     y_Scaled = -(180-degrees(acos(((humerus*humerus)+(ulna*ulna)-(sw*sw))/((2*humerus)*ulna))));
-//    if (y_Scaled < 0) y_Scaled = y_Scaled + 180;
     z_Pos = z_Scaled;
     y_Pos = y_Scaled;
     wrist_Pos = handDeg - y_Pos - z_Pos;
@@ -179,23 +175,22 @@ void loop() {
                 stop();   
             }
             
-            if (serialIn == "Up") {
+            // Wrist angle control
+            if (serialIn == "Up") {          // Rotate wrist up
                 if (wrist_Pos < 2500){
-                    handDeg += 5.0;
-                    float temp = handDeg + 83.37 - 62.773;
-                    wrist_Pos = (temp * 9.444) + 1350;
-                    moveArm(1840, 1630, 1410);
+                    handDeg += 5.0;      
+                    float temp = handDeg + 83.37 - 62.773;  // Wrist angle
+                    wrist_Pos = (temp * 9.444) + 1350;      // Wrist servo position
+                    moveArm(1840, 1630, 1410);              // Move wrist to new position
                 }
-                
             }
-            else if (serialIn == "Down") {
+            else if (serialIn == "Down") {    // Rotate wrist down
                 if (wrist_Pos > 500) {
                     handDeg -= 5.0;
-                    float temp = handDeg + 83.37 - 62.773;
-                    wrist_Pos = (temp * 9.444) + 1350;
-                    moveArm(1840, 1630, 1410);  
+                    float temp = handDeg + 83.37 - 62.773;  // Wrist angle
+                    wrist_Pos = (temp * 9.444) + 1350;      // Wrist servo position
+                    moveArm(1840, 1630, 1410);              // Move wrist to new position
                 }
-                
             }
             
             // Parse positions from serial input
@@ -211,11 +206,8 @@ void loop() {
                 scaleCoord(z.toFloat(), y.toFloat());    // Scale kinect y/z coords to arm coords
                 IK(z_Pos, y_Pos);                        // Calculate servo angles from arm coords
                 anglesToPos(z_Pos, y_Pos);               // Calculate servo positions from servo angles
-                float x_Pos = linReg(x.toFloat());
-                moveArm(x_Pos, y_Pos, z_Pos);
-//                moveX(x.toFloat());                      // Move X servo to position
-//                moveY(y_Pos);                            // Move Y servo to position
-//                moveZ(z_Pos);                            // Move Z servo to position
+                float x_Pos = linRegX(x.toFloat());      // Linear regression on X to find servo position
+                moveArm(x_Pos, y_Pos, z_Pos);            // Move arm to new position
           }
           else if(joint == "Override") {
                 moveArm(x.toFloat(), y.toFloat(), z.toFloat());
@@ -228,7 +220,8 @@ void loop() {
     }
 }
 
-float linReg( float x ) {
+// Linear regression calculation for X coordinate
+float linRegX( float x ) {
     float moveTo = (x_m*x) + x_b;               // Translate kinect coordinates to servo positions
     if (moveTo > max_x) moveTo = max_x;         // Clamp values higher than max
     else if (moveTo < min_x) moveTo = min_x;    // Clamp values lower than min
@@ -237,62 +230,28 @@ float linReg( float x ) {
 
 void moveArm( float x, float y, float z ) {
     Xbee.println(27, 'i');                      // Cancel any previous commands
+    
+    // Wrist movement
     Xbee.print("#3 P");
     Xbee.print(wrist_Pos);
     Xbee.print(" S600 ");
     
-//    float moveTo = (x_m*x) + x_b;               // Translate kinect coordinates to servo positions
-//    if (moveTo > max_x) moveTo = max_x;         // Clamp values higher than max
-//    else if (moveTo < min_x) moveTo = min_x;    // Clamp values lower than min
+    // X movement
     Xbee.print("#0 P");
     Xbee.print(x);
     Xbee.print(" S600 ");
     
-//    if (y > max_y) y = max_y;                   // Clamp values higher than max
-//    else if (y < min_y) y = min_y;              // Clamp values lower than min
+    // Y movement
     Xbee.print("#2 P");
     Xbee.print(y);
     Xbee.print(" S600 ");
     
-//    if (z > max_z) z = max_z;                   // Clamp values higher than max
-//    else if (z < min_z) z = min_z;              // Clamp values lower than min
+    // Z movement
     Xbee.print("#1 P");
     Xbee.print(z);
     Xbee.print(" S600");
     Xbee.println(" T1");
 }
-
-// Move X servo to specified position
-//void moveX(float x){
-//    Xbee.println(27, 'i');                      // Cancel any previous commands
-//    float moveTo = (x_m*x) + x_b;               // Translate kinect coordinates to servo positions
-//    if (moveTo > max_x) moveTo = max_x;         // Clamp values higher than max
-//    else if (moveTo < min_x) moveTo = min_x;    // Clamp values lower than min
-//    Xbee.print("#0 P");
-//    Xbee.print(moveTo);
-//    Xbee.print(" S600");
-////    Xbee.println("");
-//}
-//
-//void moveY(float y) {
-//    Xbee.println(27, 'i');                      // Cancel any previous commands
-//    if (y < max_y) y = max_y;                   // Clamp values higher than max
-//    else if (y > min_y) y = min_y;              // Clamp values lower than min
-//    Xbee.print(" #2 P");
-//    Xbee.print(y);
-//    Xbee.print(" S600");
-////    Xbee.println("");
-//}
-//
-//void moveZ(float z) {
-//    Xbee.println(27, 'i');                      // Cancel any previous commands
-//    if (z > max_z) z = max_z;                   // Clamp values higher than max
-//    else if (z < min_z) z = min_z;              // Clamp values lower than min
-//    Xbee.print(" #1 P");
-//    Xbee.print(z);
-//    Xbee.print(" S600");
-//    Xbee.println(" T10");
-//}
 
 // Connect to Kinect
 void connect(){
