@@ -74,11 +74,11 @@ namespace KinectCoordinateMapping
                 // Smoothing
                 TransformSmoothParameters smoothingParam = new TransformSmoothParameters();
                 {
-                    smoothingParam.Smoothing = 0.6f;            // Higher = more smoothed skeletal positions
-                    smoothingParam.Correction = 0.7f;           // Higher = correct to raw data more quickly
-                    smoothingParam.Prediction = 0.7f;           // Number of frames to predict into the future
+                    smoothingParam.Smoothing = 0.4f;            // Higher = more smoothed skeletal positions
+                    smoothingParam.Correction = 0.6f;           // Higher = correct to raw data more quickly
+                    smoothingParam.Prediction = 0.6f;           // Number of frames to predict into the future
                     smoothingParam.JitterRadius = 0.9f;        // Any jitter beyond this radius is clamped to radius
-                    smoothingParam.MaxDeviationRadius = 0.9f;  // Maximum radius(m) filtered positions are allowed to deviate from raw data
+                    smoothingParam.MaxDeviationRadius = 0.04f;  // Maximum radius(m) filtered positions are allowed to deviate from raw data
                 }
 
                 _sensor.SkeletonStream.TrackingMode = SkeletonTrackingMode.Seated;  // Seated mode
@@ -220,30 +220,30 @@ namespace KinectCoordinateMapping
                                 // Send updated joint position to Arduino
                                 if (joint.JointType == JointType.HandRight)
                                 {
-                                    if (skeletonPoint.X > maxX)
-                                    {
-                                        skeletonPoint.X = maxX;
-                                    } 
-                                    else if (skeletonPoint.X < minX)
-                                    {
-                                        skeletonPoint.X = minX;
-                                    }
-                                    if (skeletonPoint.Y > maxY)
-                                    {
-                                        skeletonPoint.Y = maxY;
-                                    }
-                                    else if (skeletonPoint.Y < minY)
-                                    {
-                                        skeletonPoint.Y = minY;
-                                    }
-                                    if (skeletonPoint.Z > maxZ)
-                                    {
-                                        skeletonPoint.Z = maxZ;
-                                    }
-                                    else if (skeletonPoint.Z < minZ)
-                                    {
-                                        skeletonPoint.Z = minZ;
-                                    }
+                                    //if (skeletonPoint.X > maxX)
+                                    //{
+                                    //    skeletonPoint.X = maxX;
+                                    //} 
+                                    //else if (skeletonPoint.X < minX)
+                                    //{
+                                    //    skeletonPoint.X = minX;
+                                    //}
+                                    //if (skeletonPoint.Y > maxY)
+                                    //{
+                                    //    skeletonPoint.Y = maxY;
+                                    //}
+                                    //else if (skeletonPoint.Y < minY)
+                                    //{
+                                    //    skeletonPoint.Y = minY;
+                                    //}
+                                    //if (skeletonPoint.Z > maxZ)
+                                    //{
+                                    //    skeletonPoint.Z = maxZ;
+                                    //}
+                                    //else if (skeletonPoint.Z < minZ)
+                                    //{
+                                    //    skeletonPoint.Z = minZ;
+                                    //}
 
                                     float changeX = Math.Abs(posX - skeletonPoint.X);
                                     float changeY = Math.Abs(posY - skeletonPoint.Y);
@@ -525,6 +525,16 @@ namespace KinectCoordinateMapping
             {
                 Debug.WriteLine("Key space");
                 currentPort.WriteLine("stop");
+            }
+            if(e.Key == Key.Up)
+            {
+                Debug.WriteLine("Up");
+                currentPort.WriteLine("Up");
+            }
+            if (e.Key == Key.Down)
+            {
+                Debug.WriteLine("Down");
+                currentPort.WriteLine("Down");
             }
         }
 
