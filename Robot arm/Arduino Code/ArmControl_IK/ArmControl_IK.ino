@@ -92,7 +92,6 @@ void scaleCoord(float z, float y) {
     y_Scaled = (34*yK) + 6.8;
     y_Pos = y_Scaled;
     z_Pos = z_Scaled;
-    Serial.print("y scale: "); Serial.print(y_Pos); Serial.print("   z scale: "); Serial.println(z_Pos);
 }
 
 // Calculate servo angles (degrees) from arm coordinates using inverse kinematics
@@ -111,7 +110,6 @@ void IK(float z, float y) {
     z_Pos = z_Scaled;
     y_Pos = y_Scaled;
     wrist_Pos = handDeg - y_Pos - z_Pos;
-    Serial.print("y angle: "); Serial.print(y_Pos); Serial.print("   z angle: "); Serial.println(z_Pos);
 }
 
 // Calculate servo positions from servo angles
@@ -123,7 +121,6 @@ void anglesToPos(float z, float y) {
     z_Pos = z_Scaled;
     y_Pos = y_Scaled;
     wrist_Pos = wrist_Scaled;
-    Serial.print("y pos: "); Serial.print(y_Pos); Serial.print("   z pos: "); Serial.println(z_Pos);
 }
 
 //Main Loop
