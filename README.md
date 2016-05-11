@@ -9,9 +9,9 @@ Senior design project from Jeffery Ruocco, Jeffrey Falberg, and Getro Jean-Bapis
 
 - [x] `Final report` Thursday, April 28, 11:59 PM
 
-- [ ] `Design Expo (poster)` Tuesday, May 3, 10:00 AM - 12:30 PM (Set up at 9:30 AM)
+- [x] `Design Expo (poster)` Tuesday, May 3, 10:00 AM - 12:30 PM (Set up at 9:30 AM)
 
-- [ ] `Design Expo (presentation)` Tuesday, May 3, 1:00 PM - 5:00 PM
+- [x] `Design Expo (presentation)` Tuesday, May 3, 1:00 PM - 5:00 PM
 
 # To-do
 
