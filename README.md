@@ -1,6 +1,10 @@
 # Mobile-Motion-Tracking-Robot-Arm
 Senior design project from Jeffery Ruocco, Jeffrey Falberg, and Getro Jean-Bapiste. 
 
+# Pictures
+
+Will add pictures here soon
+
 # Due dates
 
 - [x] `Submit list of equipment for Expo` Tuesday, April 19
