@@ -3,6 +3,7 @@ Senior design project from Jeffery Ruocco, Jeffrey Falberg, and Getro Jean-Bapis
 
 ![alt](https://github.com/StormWulf/Mobile-Motion-Tracking-Robot-Arm/blob/master/Documents/Pictures/DSC_0001.JPG?raw=true)
 ![alt](https://github.com/StormWulf/Mobile-Motion-Tracking-Robot-Arm/blob/master/Documents/Pictures/DSC_0024.JPG?raw=true)
+(Left to right) Getro Jean-Baptiste, Jeffrey Falberg, Jeffery Ruocco
 
 # Report
 [DOCX Download](https://github.com/StormWulf/Mobile-Motion-Tracking-Robot-Arm/blob/master/Documents/Report/Report_S16_MobileMotionTrackingRobotArm.docx?raw=true)
